@@ -10,13 +10,15 @@ Scanner::Scanner(string text) {
 }
 
 int Scanner::scan(string &lex) {
-    if (text[pos] == '/' && text.size() > pos + 1 && text[pos + 1] == '/') {
-        while (text[pos] != '\n' && text[pos] != '\0') pos++;
-    }
 
     lex.clear();
     while (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\n') pos++;
     if (text[pos] == '\0') return END;
+
+    if (text[pos] == '/' && text.size() > pos + 1 && text[pos + 1] == '/') {
+        while (text[pos] != '\n' && text[pos] != '\0') pos++;
+        while (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\n') pos++;
+    }
 
 
     //digit
