@@ -12,12 +12,13 @@ Scanner::Scanner(string text) {
 int Scanner::scan(string &lex) {
 
     lex.clear();
+    start:
     while (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\n') pos++;
     if (text[pos] == '\0') return END;
 
     if (text[pos] == '/' && text.size() > pos + 1 && text[pos + 1] == '/') {
         while (text[pos] != '\n' && text[pos] != '\0') pos++;
-        while (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\n') pos++;
+        goto start;
     }
 
 
@@ -29,8 +30,7 @@ int Scanner::scan(string &lex) {
             while (isDigit(text[pos]))
                 lex.push_back(text[pos++]);
             return DEC;
-        }
-        else {
+        } else {
             //16 c/c
             lex.push_back(text[pos++]);
             if (text[pos] == 'x') {
@@ -42,7 +42,7 @@ int Scanner::scan(string &lex) {
                 }
                 return digit ? HEX : ERROR;
             }
-            //8 c/c
+                //8 c/c
             else {
                 while (isOctDigit(text[pos]))
                     lex.push_back(text[pos++]);
@@ -50,34 +50,28 @@ int Scanner::scan(string &lex) {
             }
         }
     }
-    //char
+        //char
     else if (isLetter(text[pos])) {
         lex.push_back(text[pos++]);
         while (isLetter(text[pos]) || isDigit(text[pos]))
             lex.push_back(text[pos++]);
         if (lex == "int") {
             return TYPE_INT;
-        }
-        else if (lex == "char") {
+        } else if (lex == "char") {
             return TYPE_CHAR;
-        }
-        else if (lex == "class") {
+        } else if (lex == "class") {
             return WORD_CLASS;
-        }
-        else if (lex == "if") {
+        } else if (lex == "if") {
             return WORD_IF;
-        }
-        else if (lex == "else") {
+        } else if (lex == "else") {
             return WORD_ELSE;
-        }
-        else if (lex == "return") {
+        } else if (lex == "return") {
             return WORD_RETURN;
-        }
-        else {
+        } else {
             return IDENT;
         }
     }
-    //символы
+        //символы
     else {
         switch (text[pos]) {
             case '=':
