@@ -1,5 +1,7 @@
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 #include "Scanner.h"
 
 using namespace std;
@@ -14,16 +16,36 @@ string getData(const string& fileName) {
     return sf;
 }
 
-int main () {
-    string text = getData("input.txt");
+map<int, string> getMap() {
+    ifstream in("const.txt");
+
+    map<int, string> words;
+    while (!in.eof()) {
+        string str;
+        int n;
+        in >> str >> n;
+        words.insert(make_pair(n, str));
+    }
+
+    in.close();
+
+    return words;
+}
+
+int main (int argc, char *argv[]) {
+    string text = getData(argv[1]);
+
+    map<int, string> words = getMap();
 
     Scanner *scanner = new Scanner(text);
     int code;
     string lex;
-    while ((code = scanner->scan(lex))) {
-        cout << code << " " << lex;
+    code = scanner->scan(lex);
+    while (code != END && code != ERROR) {
+        cout << words[code] << " " << lex << endl;
+        code = scanner->scan(lex);
     }
-
+    cout << words[code] << " " << lex << endl;
 
     return 0;
 }
