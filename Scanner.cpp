@@ -2,22 +2,32 @@
 // Created by mikhail on 01.10.2019.
 //
 
+#include <iostream>
 #include "Scanner.h"
+
+using namespace std;
 
 Scanner::Scanner(string text) {
     this->text = text;
     this->pos = 0;
+    this->line = 0;
 }
 
 int Scanner::scan(string &lex) {
 
     lex.clear();
     start:
-    while (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\n') pos++;
+    while (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\n') {
+        if (text[pos] == '\n') line++;
+        pos++;
+    }
     if (text[pos] == '\0') return END;
 
     if (text[pos] == '/' && text.size() > pos + 1 && text[pos + 1] == '/') {
-        while (text[pos] != '\n' && text[pos] != '\0') pos++;
+        while (text[pos] != '\n' && text[pos] != '\0') {
+            if (text[pos] == '\n') line++;
+            pos++;
+        }
         goto start;
     }
 
@@ -29,6 +39,10 @@ int Scanner::scan(string &lex) {
             lex.push_back(text[pos++]);
             while (isDigit(text[pos]))
                 lex.push_back(text[pos++]);
+            if (lex.size() > 10) {
+                printError("Слишком длинная константа");
+                return ERROR;
+            }
             return DEC;
         } else {
             //16 c/c
@@ -40,12 +54,32 @@ int Scanner::scan(string &lex) {
                     lex.push_back(text[pos++]);
                     digit = true;
                 }
-                return digit ? HEX : ERROR;
+                if (digit) {
+                    if (lex.size() > 10) {
+                        printError("Слишком длинная константа");
+                        return ERROR;
+                    }
+                    return HEX;
+                }
+                else {
+                    printError("нет цифр после 0x в шестнадцатиричной константе");
+                    pos++;
+                    return ERROR;
+                }
             }
                 //8 c/c
             else {
                 while (isOctDigit(text[pos]))
                     lex.push_back(text[pos++]);
+                if (isDigit(text[pos])) {
+                    printError("десятичный символ в восьмиричной константе");
+                    pos++;
+                    return ERROR;
+                }
+                if (lex.size() > 10) {
+                    printError("Слишком длинная константа");
+                    return ERROR;
+                }
                 return OCT;
             }
         }
@@ -68,6 +102,10 @@ int Scanner::scan(string &lex) {
         } else if (lex == "return") {
             return WORD_RETURN;
         } else {
+            if (lex.size() > 80) {
+                printError("Слишком длинный идентификатор");
+                return ERROR;
+            }
             return IDENT;
         }
     }
@@ -153,12 +191,21 @@ int Scanner::scan(string &lex) {
                 if (text[pos] == '=') {
                     lex.push_back(text[pos++]);
                     return NOT_EQUAL;
-                } else
+                } else {
+                    printError("Должно было быть =");
+                    pos++;
                     return ERROR;
+                }
             default:
+                printError("Неизвестный символ");
+                pos++;
                 return ERROR;
         }
     }
 
 //    return ERROR;
+}
+
+void Scanner::printError(string er) {
+    cout << "Ошибка " << er << " строка " << line << " позиция " << pos << " символ " << text[pos] << endl;
 }

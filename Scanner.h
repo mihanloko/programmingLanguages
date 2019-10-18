@@ -22,8 +22,10 @@ public:
 
 private:
     int pos;
+    int line;
 //    string lex;
     string text;
+    void printError(string er);
 };
 
 

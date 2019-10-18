@@ -41,7 +41,7 @@ int main (int argc, char *argv[]) {
     int code;
     string lex;
     code = scanner->scan(lex);
-    while (code != END && code != ERROR) {
+    while (code != END) {
         cout << words[code] << " " << lex << endl;
         code = scanner->scan(lex);
     }
