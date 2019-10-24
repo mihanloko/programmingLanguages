@@ -222,5 +222,5 @@ void Scanner::setPos(int pos) {
 }
 
 void Scanner::printError(const string &er, string &lex) {
-    cout << er << " получено " << lex << " позиция " << pos;
+    cout << "Ожидалось " << er << ", получено " << lex << " позиция " << pos;
 }

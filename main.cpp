@@ -36,20 +36,24 @@ map<int, string> getMap() {
 int main (int argc, char *argv[]) {
     string text = getData(argv[1]);
 
-    //map<int, string> words = getMap();
+    map<int, string> words = getMap();
 
     Scanner *scanner = new Scanner(text);
-    /*int code;
+    int code;
     string lex;
+    bool errors = false;
     code = scanner->scan(lex);
     while (code != END) {
+        if (code == ERROR) errors = true;
         cout << words[code] << " " << lex << endl;
         code = scanner->scan(lex);
     }
-    cout << words[code] << " " << lex << endl;*/
+    cout << words[code] << " " << lex << endl;
 
-    SyntaxDiagrams* diagram = new SyntaxDiagrams(scanner);
-    diagram->program();
+    if (!errors) {
+        SyntaxDiagrams *diagram = new SyntaxDiagrams(scanner);
+        diagram->program();
+    }
 
     return 0;
 }

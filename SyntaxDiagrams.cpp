@@ -34,14 +34,16 @@ void SyntaxDiagrams::program() {
                     scanner->setPos(pos);
                     variableDefinition();
                 } else {
-                    //todo error
+                    scanner->printError("class, main или объявление переменной", lex);
+                    exit(0);
                 }
                 break;
             case END:
                 isOk = false;
                 break;
             case ERROR:
-                //todo printError
+                //scanner->printError(, lex);
+                exit(0);
                 isOk = false;
                 break;
         }
@@ -54,20 +56,24 @@ void SyntaxDiagrams::classDefinition() {
     int type;
     type = scanner->scan(lex);
     if (type != WORD_CLASS) {
-        //todo printError
+        scanner->printError("class", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo printError
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != CURLY_LEFT) {
-        //todo printError
+        scanner->printError("(", lex);
+        exit(0);
     }
     classContent();
     type = scanner->scan(lex);
     if (type != CURLY_RIGHT) {
-        //todo printError
+        scanner->printError(")", lex);
+        exit(0);
     }
 }
 
@@ -82,7 +88,8 @@ void SyntaxDiagrams::classContent() {
             scanner->setPos(pos);
             variableDefinition();
         } else {
-            //todo printError
+            scanner->printError("тип данных", lex);
+            exit(0);
         }
 
         pos = scanner->getPos();
@@ -97,13 +104,15 @@ void SyntaxDiagrams::variableDefinition() {
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type != TYPE_INT && type != TYPE_CHAR && type != IDENT) {
-        //todo printError
+        scanner->printError("тип данных", lex);
+        exit(0);
     }
     scanner->setPos(pos);
     variableList();
     type = scanner->scan(lex);
     if (type != SEMICOLON) {
-        //todo printError
+        scanner->printError(";", lex);
+        exit(0);
     }
 
 }
@@ -114,7 +123,8 @@ void SyntaxDiagrams::variableList() {
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo error
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     scanner->setPos(pos);
     variable();
@@ -127,7 +137,8 @@ void SyntaxDiagrams::variableList() {
             scanner->setPos(pos);
             variable();
         } else {
-            //todo error
+            scanner->printError("идентификатор", lex);
+            exit(0);
         }
         pos = scanner->getPos();
         type = scanner->scan(lex);
@@ -142,23 +153,27 @@ void SyntaxDiagrams::variable() {
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo error
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     if (type == ASSIGN) {
         expression();
     } else if (type == SQUARE_LEFT) {
         type = scanner->scan(lex);
         if (!isConst) {
-            //todo error
+            scanner->printError("константа", lex);
+            exit(0);
         }
         type = scanner->scan(lex);
         if (type != SQUARE_RIGHT) {
-            //todo error
+            scanner->printError("]", lex);
+            exit(0);
         }
     } else if (type == SEMICOLON) {
         scanner->setPos(pos);
     } else {
-        //todo error
+        scanner->printError(";", lex);
+        exit(0);
     }
 }
 
@@ -167,28 +182,34 @@ void SyntaxDiagrams::main() {
     int type;
     type = scanner->scan(lex);
     if (type != TYPE_INT) {
-        //todo error
+        scanner->printError("int", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != WORD_MAIN) {
-        //todo error
+        scanner->printError("main", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != ROUND_LEFT) {
-        //todo error
+        scanner->printError("(", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != ROUND_RIGHT) {
-        //todo error
+        scanner->printError(")", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != CURLY_LEFT) {
-        //todo error
+        scanner->printError("{", lex);
+        exit(0);
     }
     operatorsAndVariables();
     type = scanner->scan(lex);
     if (type != CURLY_RIGHT) {
-        //todo error
+        scanner->printError("}", lex);
+        exit(0);
     }
 }
 
@@ -215,7 +236,8 @@ void SyntaxDiagrams::operatorsAndVariables() {
                 operators();
             }
         } else {
-            //todo error
+            scanner->printError("оператор или объявление переменной", lex);
+            exit(0);
         }
         pos = scanner->getPos();
         type = scanner->scan(lex);
@@ -258,12 +280,14 @@ void SyntaxDiagrams::compoundOperator() {
     int type;
     type = scanner->scan(lex);
     if (type != CURLY_LEFT) {
-        //todo error
+        scanner->printError("{", lex);
+        exit(0);
     }
     operatorsAndVariables();
     type = scanner->scan(lex);
     if (type != CURLY_RIGHT) {
-        //todo error
+        scanner->printError("}", lex);
+        exit(0);
     }
 }
 
@@ -283,7 +307,8 @@ void SyntaxDiagrams::simpleOperator() {
         expression();
         type = scanner->scan(lex);
         if (type != SEMICOLON) {
-            //todo error
+            scanner->printError(";", lex);
+            exit(0);
         }
     }
 }
@@ -293,16 +318,19 @@ void SyntaxDiagrams::operatorIf() {
     int type;
     type = scanner->scan(lex);
     if (type != WORD_IF) {
-        //todo error
+        scanner->printError("if", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != ROUND_LEFT) {
-        //todo error
+        scanner->printError("(", lex);
+        exit(0);
     }
     expression();
     type = scanner->scan(lex);
     if (type != ROUND_RIGHT) {
-        //todo error
+        scanner->printError(")", lex);
+        exit(0);
     }
     oneOperator();
     int pos = scanner->getPos();
@@ -319,12 +347,14 @@ void SyntaxDiagrams::operatorReturn() {
     int type;
     type = scanner->scan(lex);
     if (type != WORD_RETURN) {
-        //todo error
+        scanner->printError("return", lex);
+        exit(0);
     }
     expression();
     type = scanner->scan(lex);
     if (type != SEMICOLON) {
-        //todo error
+        scanner->printError(";", lex);
+        exit(0);
     }
 }
 
@@ -335,7 +365,8 @@ void SyntaxDiagrams::expression() {
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type != ROUND_LEFT && type != PLUS && type != MINUS && type != IDENT && !isConst) {
-        //todo error
+        scanner->printError("выражение", lex);
+        exit(0);
     }
     if (type == ROUND_LEFT || type == PLUS || type == MINUS || isConst) {
         scanner->setPos(pos);
@@ -346,7 +377,8 @@ void SyntaxDiagrams::expression() {
             while (type != ASSIGN) {
                 type = scanner->scan(lex);
                 if (type != IDENT) {
-                    //todo error
+                    scanner->printError("идентификатор", lex);
+                    exit(0);
                 }
                 type = scanner->scan(lex);
                 if (type != DOT && type != ASSIGN) {
@@ -360,11 +392,13 @@ void SyntaxDiagrams::expression() {
         } else if (type == SQUARE_LEFT) {
             type = scanner->scan(lex);
             if (type != IDENT || !isConst) {
-                //todo error
+                scanner->printError("константа или идентификатор", lex);
+                exit(0);
             }
             type = scanner->scan(lex);
             if (type != SQUARE_RIGHT) {
-                //todo error
+                scanner->printError("]", lex);
+                exit(0);
             }
             type = scanner->scan(lex);
             if (type == ASSIGN) {
@@ -382,7 +416,8 @@ void SyntaxDiagrams::expression() {
             a1();
         }
     } else {
-        //todo error
+        scanner->printError("выражение", lex);
+        exit(0);
     }
 }
 
@@ -496,7 +531,8 @@ void SyntaxDiagrams::a7() {
         expression();
         type = scanner->scan(lex);
         if (type != ROUND_RIGHT) {
-            //todo error
+            scanner->printError(")", lex);
+            exit(0);
         }
     } else if (type == IDENT) {
         int pos = scanner->getPos();
@@ -513,7 +549,8 @@ void SyntaxDiagrams::a7() {
     } else if (isConst) {
         return;
     } else {
-        //todo error
+        scanner->printError("элементарное выражение", lex);
+        exit(0);
     }
 }
 
@@ -522,19 +559,23 @@ void SyntaxDiagrams::arrayAccess() {
     int type;
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo error
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != SQUARE_LEFT) {
-        //todo error
+        scanner->printError("[", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (!isConst) {
-        //todo error
+        scanner->printError("константа", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != SQUARE_RIGHT) {
-        //todo error
+        scanner->printError("]", lex);
+        exit(0);
     }
 }
 
@@ -543,22 +584,26 @@ void SyntaxDiagrams::classAccess() {
     int type;
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo error
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != DOT) {
-        //todo error
+        scanner->printError("точка", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo error
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     while (type == DOT) {
         type = scanner->scan(lex);
         if (type != IDENT) {
-            //todo error
+            scanner->printError("идентификатор", lex);
+            exit(0);
         }
         pos = scanner->getPos();
         type = scanner->scan(lex);
@@ -571,7 +616,8 @@ void SyntaxDiagrams::assign() {
     int type;
     type = scanner->scan(lex);
     if (type != IDENT) {
-        //todo error
+        scanner->printError("идентификатор", lex);
+        exit(0);
     }
     type = scanner->scan(lex);
     if (type == ASSIGN) {
@@ -579,15 +625,18 @@ void SyntaxDiagrams::assign() {
     } else if (type == SQUARE_LEFT) {
         type = scanner->scan(lex);
         if (!(isConst || type == IDENT)) {
-            //todo error
+            scanner->printError("константа или идентификатор", lex);
+            exit(0);
         }
         type = scanner->scan(lex);
         if (type != SQUARE_RIGHT) {
-            //todo error
+            scanner->printError("]", lex);
+            exit(0);
         }
         type = scanner->scan(lex);
         if (type != ASSIGN) {
-            //todo error
+            scanner->printError("=", lex);
+            exit(0);
         } else {
             expression();
         }
@@ -595,14 +644,16 @@ void SyntaxDiagrams::assign() {
         while (type == DOT) {
             type = scanner->scan(lex);
             if (type != IDENT) {
-                //todo error
+                scanner->printError("идентификатор", lex);
+                exit(0);
             }
             type = scanner->scan(lex);
         }
         if (type == ASSIGN) {
             expression();
         } else {
-            //todo error
+            scanner->printError("=", lex);
+            exit(0);
         }
     }
 }
