@@ -38,6 +38,7 @@
 #define WORD_IF 61
 #define WORD_ELSE 62
 #define WORD_RETURN 63
+#define WORD_MAIN 64
 #define ERROR 100
 #define END 200
 

@@ -101,6 +101,9 @@ int Scanner::scan(string &lex) {
             return WORD_ELSE;
         } else if (lex == "return") {
             return WORD_RETURN;
+        }
+        else if (lex == "main") {
+            return WORD_MAIN;
         } else {
             if (lex.size() > 80) {
                 printError("Слишком длинный идентификатор");
@@ -206,6 +209,18 @@ int Scanner::scan(string &lex) {
 //    return ERROR;
 }
 
-void Scanner::printError(string er) {
+void Scanner::printError(const string& er) {
     cout << "Ошибка " << er << " строка " << line << " позиция " << pos << " символ " << text[pos] << endl;
+}
+
+int Scanner::getPos() const {
+    return pos;
+}
+
+void Scanner::setPos(int pos) {
+    Scanner::pos = pos;
+}
+
+void Scanner::printError(const string &er, string &lex) {
+    cout << er << " получено " << lex << " позиция " << pos;
 }

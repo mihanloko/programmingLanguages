@@ -19,13 +19,17 @@ class Scanner {
 public:
     Scanner(string text);
     int scan(string &lexema);
+    void setPos(int pos);
+    int getPos() const;
+
+    void printError(const string& er);
+    void printError(const string& er, string& lex);
 
 private:
     int pos;
     int line;
 //    string lex;
     string text;
-    void printError(string er);
 };
 
 
