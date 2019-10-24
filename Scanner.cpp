@@ -222,5 +222,13 @@ void Scanner::setPos(int pos) {
 }
 
 void Scanner::printError(const string &er, string &lex) {
-    cout << "Ожидалось " << er << ", получено " << lex << " позиция " << pos;
+    int erLine = 1, erPos = 1;
+    for (int i = 0; i < pos - lex.length(); ++i) {
+        //erLine++;
+        erPos++;
+        if (text[i] == '\n') {
+            erLine++, erPos = 1;
+        }
+    }
+    cout << "Ожидалось " << er << ", получено " << lex << " строка " << erLine << " позиция " << erPos;
 }

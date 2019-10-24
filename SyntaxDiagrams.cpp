@@ -47,6 +47,8 @@ void SyntaxDiagrams::program() {
                 isOk = false;
                 break;
         }
+        pos = scanner->getPos();
+        type = scanner->scan(lex);
     }
 
 }
@@ -107,7 +109,7 @@ void SyntaxDiagrams::variableDefinition() {
         scanner->printError("тип данных", lex);
         exit(0);
     }
-    scanner->setPos(pos);
+    //scanner->setPos(pos);
     variableList();
     type = scanner->scan(lex);
     if (type != SEMICOLON) {
@@ -156,6 +158,8 @@ void SyntaxDiagrams::variable() {
         scanner->printError("идентификатор", lex);
         exit(0);
     }
+    pos = scanner->getPos();
+    type = scanner->scan(lex);
     if (type == ASSIGN) {
         expression();
     } else if (type == SQUARE_LEFT) {
@@ -250,12 +254,12 @@ void SyntaxDiagrams::operators() {
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
-    while (type != CURLY_RIGHT) {//todo подумать так ли это
+    //while (type != CURLY_RIGHT) {//todo подумать так ли это
         scanner->setPos(pos);
         oneOperator();
         pos = scanner->getPos();
         type = scanner->scan(lex);
-    }
+    //}
     scanner->setPos(pos);
 }
 
@@ -391,7 +395,7 @@ void SyntaxDiagrams::expression() {
             assign();
         } else if (type == SQUARE_LEFT) {
             type = scanner->scan(lex);
-            if (type != IDENT || !isConst) {
+            if (type != IDENT && !isConst) {
                 scanner->printError("константа или идентификатор", lex);
                 exit(0);
             }

@@ -45,12 +45,12 @@ int main (int argc, char *argv[]) {
     code = scanner->scan(lex);
     while (code != END) {
         if (code == ERROR) errors = true;
-        cout << words[code] << " " << lex << endl;
+        //cout << words[code] << " " << lex << endl;
         code = scanner->scan(lex);
     }
-    cout << words[code] << " " << lex << endl;
-
-    if (!errors) {
+    //cout << words[code] << " " << lex << endl;
+    scanner->setPos(0);
+    if (!errors || errors) {
         SyntaxDiagrams *diagram = new SyntaxDiagrams(scanner);
         diagram->program();
     }
