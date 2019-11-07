@@ -52,7 +52,8 @@ int main (int argc, char *argv[]) {
     scanner->setPos(0);
     if (!errors || errors) {
         SyntaxDiagrams *diagram = new SyntaxDiagrams(scanner);
-        diagram->program();
+        bool result = diagram->program();
+        if (result) cout << "Ошибок нет";
     }
 
     return 0;

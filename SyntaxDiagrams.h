@@ -14,7 +14,7 @@
 class SyntaxDiagrams {
 public:
     explicit SyntaxDiagrams(Scanner* scanner);
-    void program();
+    bool program();
     void main();
     void classDefinition();
     void variableDefinition();

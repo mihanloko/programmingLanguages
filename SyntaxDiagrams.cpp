@@ -8,7 +8,7 @@ SyntaxDiagrams::SyntaxDiagrams(Scanner *scanner) {
     this->scanner = scanner;
 }
 
-void SyntaxDiagrams::program() {
+bool SyntaxDiagrams::program() {
     bool isOk = true;
     string lex;
     int type;
@@ -39,8 +39,7 @@ void SyntaxDiagrams::program() {
                 }
                 break;
             case END:
-                isOk = false;
-                break;
+                return true;
             case ERROR:
                 //scanner->printError(, lex);
                 exit(0);
@@ -144,6 +143,10 @@ void SyntaxDiagrams::variableList() {
         }
         pos = scanner->getPos();
         type = scanner->scan(lex);
+        if (type == VIRGULE) {
+            pos = scanner->getPos();
+            type = scanner->scan(lex);
+        }
     }
     scanner->setPos(pos);
 
@@ -175,8 +178,10 @@ void SyntaxDiagrams::variable() {
         }
     } else if (type == SEMICOLON) {
         scanner->setPos(pos);
+    } else if (type == VIRGULE) {
+        ;
     } else {
-        scanner->printError(";", lex);
+        scanner->printError("\',\' или \';\'", lex);
         exit(0);
     }
 }
