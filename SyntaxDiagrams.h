@@ -7,6 +7,7 @@
 
 #include "Scanner.h"
 #include "defs.h"
+#include "Tree.h"
 #include <string>
 
 #define isConst (type == HEX || type == DEC || type == OCT)
@@ -19,9 +20,9 @@ public:
     void classDefinition();
     void variableDefinition();
     void classContent();
-    void variableList();
-    void variable();
-    void expression();
+    void variableList(Tree *typeDef);
+    void variable(Tree *typeDef);
+    Tree *expression();
     void operatorsAndVariables();
     void operators();
     void oneOperator();
@@ -29,16 +30,16 @@ public:
     void compoundOperator();
     void operatorIf();
     void operatorReturn();
-    void a1();
-    void a2();
-    void a3();
-    void a4();
-    void a5();
-    void a6();
-    void a7();
-    void assign();
-    void arrayAccess();
-    void classAccess();
+    Tree * a1();
+    Tree * a2();
+    Tree * a3();
+    Tree * a4();
+    Tree * a5();
+    Tree * a6();
+    Tree * a7();
+    Tree * assign();
+    Tree * arrayAccess();
+    Tree * classAccess();
 
 
 private:

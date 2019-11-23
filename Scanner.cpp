@@ -232,3 +232,16 @@ void Scanner::printError(const string &er, string &lex) {
     }
     cout << "Ожидалось " << er << ", получено " << lex << " строка " << erLine << " позиция " << erPos;
 }
+
+void Scanner::printSemError(const string &er, int d) {
+    int erLine = 1, erPos = 1;
+    for (int i = 0; i < pos - d; ++i) {
+        //erLine++;
+        erPos++;
+        if (text[i] == '\n') {
+            erLine++, erPos = 1;
+        }
+    }
+    cout << er << " " << erLine << " позиция " << erPos << endl;
+}
+

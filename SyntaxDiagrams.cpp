@@ -2,10 +2,25 @@
 // Created by mikhail on 18.10.2019.
 //
 
+#include <iostream>
 #include "SyntaxDiagrams.h"
+
+using namespace std;
 
 SyntaxDiagrams::SyntaxDiagrams(Scanner *scanner) {
     this->scanner = scanner;
+
+    Node* node = new Node();
+    node->lex = "int";
+    node->type = ObjStructDefinition;
+    Tree *currentNode = new Tree(node);
+    node = new Node();
+    node->lex = "char";
+    node->type = ObjStructDefinition;
+    currentNode->SetLeft(node);
+    Tree::cur = currentNode->getLeft();
+    Tree::scanner = scanner;
+
 }
 
 bool SyntaxDiagrams::program() {
@@ -65,17 +80,23 @@ void SyntaxDiagrams::classDefinition() {
         scanner->printError("идентификатор", lex);
         exit(0);
     }
+    if (Tree::cur->FindUp(lex) != nullptr) {
+        scanner->printSemError("Идентификатор " + lex + "уже объявлен", lex.size());
+        exit(0);
+    }
+    Tree *old = Tree::cur->openBlock(lex, ObjStructDefinition);
     type = scanner->scan(lex);
     if (type != CURLY_LEFT) {
-        scanner->printError("(", lex);
+        scanner->printError("{", lex);
         exit(0);
     }
     classContent();
     type = scanner->scan(lex);
     if (type != CURLY_RIGHT) {
-        scanner->printError(")", lex);
+        scanner->printError("}", lex);
         exit(0);
     }
+    Tree::cur->goUp(old);
 }
 
 void SyntaxDiagrams::classContent() {
@@ -108,8 +129,9 @@ void SyntaxDiagrams::variableDefinition() {
         scanner->printError("тип данных", lex);
         exit(0);
     }
+    Tree *typeDef = Tree::cur->findClassDefinition(lex);
     //scanner->setPos(pos);
-    variableList();
+    variableList(typeDef);
     type = scanner->scan(lex);
     if (type != SEMICOLON) {
         scanner->printError(";", lex);
@@ -118,7 +140,7 @@ void SyntaxDiagrams::variableDefinition() {
 
 }
 
-void SyntaxDiagrams::variableList() {
+void SyntaxDiagrams::variableList(Tree *typeDef) {
     string lex;
     int type;
     int pos = scanner->getPos();
@@ -128,7 +150,7 @@ void SyntaxDiagrams::variableList() {
         exit(0);
     }
     scanner->setPos(pos);
-    variable();
+    variable(typeDef);
     pos = scanner->getPos();
     type = scanner->scan(lex);
 
@@ -136,7 +158,7 @@ void SyntaxDiagrams::variableList() {
 
         if (type == IDENT) {
             scanner->setPos(pos);
-            variable();
+            variable(typeDef);
         } else {
             scanner->printError("идентификатор", lex);
             exit(0);
@@ -152,7 +174,7 @@ void SyntaxDiagrams::variableList() {
 
 }
 
-void SyntaxDiagrams::variable() {
+void SyntaxDiagrams::variable(Tree *typeDef) {
     string lex;
     int type;
     int pos = scanner->getPos();
@@ -161,16 +183,19 @@ void SyntaxDiagrams::variable() {
         scanner->printError("идентификатор", lex);
         exit(0);
     }
+    Tree *var = Tree::cur->createVar(typeDef, lex);
     pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == ASSIGN) {
-        expression();
+        Tree *expType = expression();
+        Tree::cur->checkAssignCompatible(var, expType);
     } else if (type == SQUARE_LEFT) {
         type = scanner->scan(lex);
         if (!isConst) {
             scanner->printError("константа", lex);
             exit(0);
         }
+        var->makeVarArray(lex);
         type = scanner->scan(lex);
         if (type != SQUARE_RIGHT) {
             scanner->printError("]", lex);
@@ -199,6 +224,11 @@ void SyntaxDiagrams::main() {
         scanner->printError("main", lex);
         exit(0);
     }
+    if (Tree::cur->FindUp(lex) != nullptr) {
+        scanner->printSemError("Идентификатор " + lex + "уже объявлен", lex.size());
+        exit(0);
+    }
+    Tree *old = Tree::cur->openBlock(lex, ObjMain);
     type = scanner->scan(lex);
     if (type != ROUND_LEFT) {
         scanner->printError("(", lex);
@@ -220,6 +250,7 @@ void SyntaxDiagrams::main() {
         scanner->printError("}", lex);
         exit(0);
     }
+    Tree::cur->goUp(old);
 }
 
 void SyntaxDiagrams::operatorsAndVariables() {
@@ -292,12 +323,14 @@ void SyntaxDiagrams::compoundOperator() {
         scanner->printError("{", lex);
         exit(0);
     }
+    Tree *old = Tree::cur->openBlock("", ObjFictive);
     operatorsAndVariables();
     type = scanner->scan(lex);
     if (type != CURLY_RIGHT) {
         scanner->printError("}", lex);
         exit(0);
     }
+    Tree::cur->goUp(old);
 }
 
 void SyntaxDiagrams::simpleOperator() {
@@ -359,7 +392,11 @@ void SyntaxDiagrams::operatorReturn() {
         scanner->printError("return", lex);
         exit(0);
     }
-    expression();
+    Tree* expType = expression();
+    if (expType->getNode()->type != ObjInt && expType->getNode()->type != ObjChar) {
+        scanner->printSemError("Должно быть int или char", 0);
+        exit(0);
+    }
     type = scanner->scan(lex);
     if (type != SEMICOLON) {
         scanner->printError(";", lex);
@@ -367,7 +404,7 @@ void SyntaxDiagrams::operatorReturn() {
     }
 }
 
-void SyntaxDiagrams::expression() {
+Tree* SyntaxDiagrams::expression() {
     // + - ( ident const
     string lex;
     int type;
@@ -379,8 +416,9 @@ void SyntaxDiagrams::expression() {
     }
     if (type == ROUND_LEFT || type == PLUS || type == MINUS || isConst) {
         scanner->setPos(pos);
-        a1();
+        return a1();
     } else if (type == IDENT) {
+        Tree::cur->isExist(lex);
         type = scanner->scan(lex);
         if (type == DOT) {
             while (type != ASSIGN) {
@@ -392,12 +430,11 @@ void SyntaxDiagrams::expression() {
                 type = scanner->scan(lex);
                 if (type != DOT && type != ASSIGN) {
                     scanner->setPos(pos);
-                    a1();
-                    return;
+                    return a1();
                 }
             }
             scanner->setPos(pos);
-            assign();
+            return assign();
         } else if (type == SQUARE_LEFT) {
             type = scanner->scan(lex);
             if (type != IDENT && !isConst) {
@@ -412,17 +449,17 @@ void SyntaxDiagrams::expression() {
             type = scanner->scan(lex);
             if (type == ASSIGN) {
                 scanner->setPos(pos);
-                assign();
+                return assign();
             } else {
                 scanner->setPos(pos);
                 a1();
             }
         } else if (type == ASSIGN) {
             scanner->setPos(pos);
-            assign();
+            return assign();
         } else {
             scanner->setPos(pos);
-            a1();
+            return a1();
         }
     } else {
         scanner->printError("выражение", lex);
@@ -430,15 +467,17 @@ void SyntaxDiagrams::expression() {
     }
 }
 
-void SyntaxDiagrams::a1() {
-    a2();
+Tree *SyntaxDiagrams::a1() {
+    Tree *t = a2();
+    Tree *res = t;
     string lex;
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == EQUALS || type == NOT_EQUAL) {
         while (type == EQUALS || type == NOT_EQUAL) {
-            a2();
+            Tree *g = a2();
+            res = Tree::cur->check1Compatible(t, g);
             pos = scanner->getPos();
             type = scanner->scan(lex);
         }
@@ -446,17 +485,20 @@ void SyntaxDiagrams::a1() {
     } else {
         scanner->setPos(pos);
     }
+    return res;
 }
 
-void SyntaxDiagrams::a2() {
-    a3();
+Tree* SyntaxDiagrams::a2() {
+    Tree *t = a3();
+    Tree *res = t;
     string lex;
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == GREATER || type == GREATER_EQUAL || type == LESS || type == LESS_EQUAL) {
         while (type == GREATER || type == GREATER_EQUAL || type == LESS || type == LESS_EQUAL) {
-            a3();
+            Tree *g = a3();
+            res = Tree::cur->check2Compatible(t, g);
             pos = scanner->getPos();
             type = scanner->scan(lex);
         }
@@ -464,17 +506,20 @@ void SyntaxDiagrams::a2() {
     } else {
         scanner->setPos(pos);
     }
+    return res;
 }
 
-void SyntaxDiagrams::a3() {
-    a4();
+Tree* SyntaxDiagrams::a3() {
+    Tree *t = a4();
+    Tree *res = t;
     string lex;
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == LEFT_SHIFT || type == RIGHT_SHIFT) {
         while (type == LEFT_SHIFT || type == RIGHT_SHIFT) {
-            a4();
+            Tree *g = a4();
+            res = Tree::cur->check3Compatible(t, g);
             pos = scanner->getPos();
             type = scanner->scan(lex);
         }
@@ -482,17 +527,21 @@ void SyntaxDiagrams::a3() {
     } else {
         scanner->setPos(pos);
     }
+    return res;
 }
 
-void SyntaxDiagrams::a4() {
-    a5();
+Tree* SyntaxDiagrams::a4() {
+
+    Tree *t = a5();
+    Tree *res = t;
     string lex;
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == PLUS || type == MINUS) {
         while (type == PLUS || type == MINUS) {
-            a5();
+            Tree *g = a5();
+            res = Tree::cur->check4Compatible(t, g);
             pos = scanner->getPos();
             type = scanner->scan(lex);
         }
@@ -500,17 +549,21 @@ void SyntaxDiagrams::a4() {
     } else {
         scanner->setPos(pos);
     }
+    return res;
 }
 
-void SyntaxDiagrams::a5() {
-    a6();
+Tree* SyntaxDiagrams::a5() {
+    Tree *res;
+    Tree *t = a6();
+    res = t;
     string lex;
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == STAR || type == SLASH || type == PERCENT) {
         while (type == STAR || type == SLASH || type == PERCENT) {
-            a6();
+            Tree *g = a6();
+            res = Tree::cur->check5Compatible(t, g);
             pos = scanner->getPos();
             type = scanner->scan(lex);
         }
@@ -518,9 +571,10 @@ void SyntaxDiagrams::a5() {
     } else {
         scanner->setPos(pos);
     }
+    return res;
 }
 
-void SyntaxDiagrams::a6() {
+Tree* SyntaxDiagrams::a6() {
     string lex;
     int type;
     int pos = scanner->getPos();
@@ -528,47 +582,63 @@ void SyntaxDiagrams::a6() {
     if (type != PLUS && type != MINUS) {
         scanner->setPos(pos);
     }
-    a7();
+    Tree::cur->Print(0);
+    Tree *expType = a7();
+    if (expType->getNode()->type == ObjInt || expType->getNode()->type == ObjChar || expType->getNode()->type == ObjUnknown) {
+        return expType;
+    }
+    else {
+        scanner->printSemError("Невозможный тип операции для унарной операции + или -", 0);
+        exit(0);
+    }
 }
 
-void SyntaxDiagrams::a7() {
+Tree* SyntaxDiagrams::a7() {
     string lex;
     int type;
     int pos1 = scanner->getPos();
     type = scanner->scan(lex);
+    string oldLex = lex;
     if (type == ROUND_LEFT) {
-        expression();
+        Tree *typeExp = expression();
         type = scanner->scan(lex);
         if (type != ROUND_RIGHT) {
             scanner->printError(")", lex);
             exit(0);
         }
+        return typeExp;
     } else if (type == IDENT) {
         int pos = scanner->getPos();
         type = scanner->scan(lex);
         if (type == SQUARE_LEFT) {
             scanner->setPos(pos1);
-            arrayAccess();
+            return arrayAccess();
         } else if (type == DOT) {
             scanner->setPos(pos1);
-            classAccess();
+            return classAccess();
         } else {
             scanner->setPos(pos);
+            return Tree::cur->isExist(oldLex);
         }
     } else if (isConst) {
-        return;
+        return Tree::cur->makeIntVar();
     } else {
         scanner->printError("элементарное выражение", lex);
         exit(0);
     }
 }
 
-void SyntaxDiagrams::arrayAccess() {
+Tree* SyntaxDiagrams::arrayAccess() {
     string lex;
     int type;
     type = scanner->scan(lex);
     if (type != IDENT) {
         scanner->printError("идентификатор", lex);
+        exit(0);
+    }
+    Tree *var = Tree::cur->isExist(lex);
+    if (var->getNode()->type != ObjArray && var->getNode()->type != ObjUnknown) {
+        scanner->printSemError(lex + " не является массивом", lex.size());
         exit(0);
     }
     type = scanner->scan(lex);
@@ -586,14 +656,20 @@ void SyntaxDiagrams::arrayAccess() {
         scanner->printError("]", lex);
         exit(0);
     }
+    return Tree::cur->makeTypeFromArray(var);
 }
 
-void SyntaxDiagrams::classAccess() {
+Tree* SyntaxDiagrams::classAccess() {
     string lex;
     int type;
     type = scanner->scan(lex);
     if (type != IDENT) {
         scanner->printError("идентификатор", lex);
+        exit(0);
+    }
+    Tree* var = Tree::cur->FindUp(lex);
+    if (var == nullptr) {
+        scanner->printSemError("Идентификатор " + lex + " не объявлен", lex.size());
         exit(0);
     }
     type = scanner->scan(lex);
@@ -614,13 +690,15 @@ void SyntaxDiagrams::classAccess() {
             scanner->printError("идентификатор", lex);
             exit(0);
         }
+        var = Tree::cur->findFiled(var, lex);
         pos = scanner->getPos();
         type = scanner->scan(lex);
     }
     scanner->setPos(pos);
+    return var;
 }
 
-void SyntaxDiagrams::assign() {
+Tree *SyntaxDiagrams::assign() {
     string lex;
     int type;
     type = scanner->scan(lex);
@@ -628,15 +706,25 @@ void SyntaxDiagrams::assign() {
         scanner->printError("идентификатор", lex);
         exit(0);
     }
+    Tree *n = Tree::cur->isExist(lex);
+    if (n == nullptr) {
+        scanner->printSemError("Идентификатор " + lex + " не объявлен", lex.size());
+        exit(0);
+    }
     type = scanner->scan(lex);
+    Tree *expType;
     if (type == ASSIGN) {
-        expression();
+        expType = expression();
+        return Tree::cur->checkAssignCompatible(n, expType);
     } else if (type == SQUARE_LEFT) {
-        type = scanner->scan(lex);
+        Tree * indexType;
+        /*type = scanner->scan(lex);
         if (!(isConst || type == IDENT)) {
             scanner->printError("константа или идентификатор", lex);
             exit(0);
-        }
+        }*/
+        indexType = expression();
+        Tree * arrayType = Tree::cur->checkArray(n, indexType);
         type = scanner->scan(lex);
         if (type != SQUARE_RIGHT) {
             scanner->printError("]", lex);
@@ -647,7 +735,8 @@ void SyntaxDiagrams::assign() {
             scanner->printError("=", lex);
             exit(0);
         } else {
-            expression();
+            expType = expression();
+            return Tree::cur->checkAssignCompatible(arrayType, expType);
         }
     } else if (type == DOT) {
         while (type == DOT) {
@@ -656,10 +745,12 @@ void SyntaxDiagrams::assign() {
                 scanner->printError("идентификатор", lex);
                 exit(0);
             }
+            n = Tree::cur->findFiled(n, lex);
             type = scanner->scan(lex);
         }
         if (type == ASSIGN) {
-            expression();
+            expType = expression();
+            return Tree::cur->checkAssignCompatible(n, expType);
         } else {
             scanner->printError("=", lex);
             exit(0);

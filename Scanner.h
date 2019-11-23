@@ -24,6 +24,7 @@ public:
 
     void printError(const string& er);
     void printError(const string& er, string& lex);
+    void printSemError(const string& er, int d);
 
 private:
     int pos;

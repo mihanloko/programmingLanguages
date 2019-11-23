@@ -3,4 +3,4 @@ project(scanner)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(scanner main.cpp defs.h Scanner.cpp Scanner.h SyntaxDiagrams.cpp SyntaxDiagrams.h)
+add_executable(scanner main.cpp defs.h Scanner.cpp Scanner.h SyntaxDiagrams.cpp SyntaxDiagrams.h Tree.cpp Tree.h Node.cpp Node.h)
