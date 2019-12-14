@@ -44,6 +44,29 @@ Tree *Tree::FindUp(Tree *From, string id) {
     return cur;
 }
 
+Tree *Tree::FindUpOneLevel(Tree *From, string id)
+// Поиск элемента id вверх по дереву от текущей вершины From.
+// Поиск осуществляется на одном уровне вложенности по левым связям
+{
+    Tree *i = From;
+// текущая вершина поиска
+    while ((i != NULL) && (i->parent != nullptr && i->parent->right != i)) {
+        if (id == i->node->lex)
+            return i; // нaшли совпадающий идентификатор
+        i = i->parent;
+// поднимаемся наверх по связям
+    }
+    return NULL;
+}
+
+int Tree::DupControl(Tree *Addr, string a)
+// Проверка идентификатора а на повторное описание внутри блока.
+// Поиск осуществляется вверх от вершины Addr.
+{
+    if (FindUpOneLevel(Addr, a) == NULL) return 0;
+    return 1;
+}
+
 Tree *Tree::FindUp(string id) {
     return FindUp(this, id);
 }
@@ -104,23 +127,27 @@ Tree *Tree::isExist(string lex) {
     Tree *n = cur->FindUp(lex);
     if (n == nullptr) {
         scanner->printSemError("Идентификатор " + lex + " не объявлен", lex.size());
-        Node *fakeNode= new Node();
+        Node *fakeNode = new Node();
         fakeNode->lex = lex;
         fakeNode->type = ObjUnknown;
         cur->SetLeft(fakeNode);
         cur = cur->left;
         return cur;
     }
+    return n;
 }
 
 Tree *Tree::findFiled(Tree *p, string field) {
     if (p->node->type != ObjStruct) {
-        scanner->printSemError("Попытка обратиться к полю, но "+ p->node->lex + " не является структурой", field.size() + 1);
+        scanner->printSemError("Попытка обратиться к полю, но " + p->node->lex + " не является структурой",
+                               field.size() + 1);
         exit(0);
     }
 
     string type = p->node->dataType;
     Tree *typeDefinition = Tree::cur->FindUp(type);
+    while (typeDefinition != nullptr && typeDefinition->node->type != ObjStructDefinition)
+        typeDefinition = Tree::cur->FindUp(typeDefinition->parent, type);
     if (typeDefinition == nullptr) {
         scanner->printSemError("Класс не объявлен " + type, type.size());
         exit(0);
@@ -137,7 +164,7 @@ Tree *Tree::findFiled(Tree *p, string field) {
         fakeNode->type = ObjUnknown;
         s->SetLeft(fakeNode);
         fieldNode = s->left;
-        //exit(0);
+        exit(0);
     }
 
     return fieldNode;
@@ -161,7 +188,7 @@ Node *Tree::getNode() const {
     return node;
 }
 
-Tree *Tree::checkAssignCompatible(Tree * t, Tree * g) {
+Tree *Tree::checkAssignCompatible(Tree *t, Tree *g) {
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
         t->node->type == ObjMain || g->node->type == ObjMain ||
         t->node->type == ObjArray || g->node->type == ObjArray) {
@@ -169,16 +196,22 @@ Tree *Tree::checkAssignCompatible(Tree * t, Tree * g) {
         exit(0);
     }
 
-    if (t->node->type == ObjStruct && g->node->type == ObjStruct ) {
-        if (t->node->dataType == g->node->dataType)
-            return cur->FindUp(t->node->dataType);
+    if (t->node->type == ObjStruct || g->node->type == ObjStruct) {
+        if (t->node->type == ObjStruct && g->node->type == ObjStruct) {
+            if (t->node->dataType == g->node->dataType)
+                return cur->FindUp(t->node->dataType);
+            else {
+                scanner->printSemError("разные классы", 0);
+                exit(0);
+            }
+        }
         else {
             scanner->printSemError("разные классы", 0);
             exit(0);
         }
     }
 
-    if (t->node->type == ObjUnknown || g->node->type == ObjUnknown )
+    if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
 
     if (t->node->type == ObjChar && g->node->type == ObjChar)
@@ -193,6 +226,12 @@ Tree *Tree::checkAssignCompatible(Tree * t, Tree * g) {
 
 Tree *Tree::findClassDefinition(string lex) {
     Tree *type = cur->FindUp(lex);
+    while (type != nullptr && type->node->type != ObjStructDefinition)
+        type = type->FindUp(type->parent, lex);
+    if (type == nullptr) {
+        scanner->printSemError("класс " + lex + " не объявлен", 0);
+        exit(0);
+    }
     if (type->node->type != ObjStructDefinition) {
         scanner->printSemError(lex + " не является классом", 0);
         exit(0);
@@ -201,8 +240,9 @@ Tree *Tree::findClassDefinition(string lex) {
 }
 
 Tree *Tree::createVar(Tree *type, string lex) {
-    Tree* p = cur->FindUp(lex);
-    if (p != nullptr) {
+
+    Tree *p = cur->FindUp(lex);
+    if (DupControl(this, lex)) {
         scanner->printSemError("Объект " + lex + " уже существует", lex.size());
         exit(0);
     }
@@ -219,9 +259,9 @@ Tree *Tree::createVar(Tree *type, string lex) {
     cur->SetLeft(n);
     cur = cur->left;
     Tree *i = cur;
-    while (i->parent != nullptr)
-        i = i->parent;
-    i->Print(0);
+//    while (i->parent != nullptr)
+//        i = i->parent;
+    //i->Print(0);
     return cur;
 }
 
@@ -235,7 +275,7 @@ Tree *Tree::makeTypeFromArray(Tree *pTree) {
     Node *n = new Node();
     if (pTree->node->dataType == "int") {
         n->type = ObjInt;
-    } else  if (pTree->node->dataType == "char") {
+    } else if (pTree->node->dataType == "char") {
         n->type = ObjChar;
     } else {
         n->type = ObjStruct;
@@ -260,9 +300,6 @@ Tree *Tree::check5Compatible(Tree *t, Tree *g) {
         t->node->type == ObjStruct || g->node->type == ObjStruct) {
         scanner->printSemError("Невозможный тип для операций *, / или %", 0);
         exit(0);
-    int a[10], b[20];
-    if (a < b)
-        return nullptr;
     }
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
@@ -360,8 +397,7 @@ Tree *Tree::check1Compatible(Tree *t, Tree *g) {
                 scanner->printSemError("Разные типы структур для сравнения", 0);
                 exit(0);
             }
-        }
-        else {
+        } else {
             scanner->printSemError("Невозможный тип для операций сравнения", 0);
             exit(0);
         }

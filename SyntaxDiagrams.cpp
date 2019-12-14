@@ -452,7 +452,7 @@ Tree* SyntaxDiagrams::expression() {
                 return assign();
             } else {
                 scanner->setPos(pos);
-                a1();
+                return a1();
             }
         } else if (type == ASSIGN) {
             scanner->setPos(pos);
@@ -531,12 +531,31 @@ Tree* SyntaxDiagrams::a3() {
 }
 
 Tree* SyntaxDiagrams::a4() {
-
-    Tree *t = a5();
-    Tree *res = t;
     string lex;
     int type;
     int pos = scanner->getPos();
+    type = scanner->scan(lex);
+    bool flag = false;
+    if (type == PLUS || type == MINUS) {
+        flag = true;
+    } else {
+        scanner->setPos(pos);
+    }
+
+    Tree *t = a5();
+    Tree *res = t;
+
+    if (flag) {
+        if (t->getNode()->type == ObjInt || t->getNode()->type == ObjChar || t->getNode()->type == ObjUnknown) {
+            ;
+        }
+        else {
+            scanner->printSemError("Невозможный тип операции для унарной операции + или -", 0);
+            exit(0);
+        }
+    }
+
+    pos = scanner->getPos();
     type = scanner->scan(lex);
     if (type == PLUS || type == MINUS) {
         while (type == PLUS || type == MINUS) {
@@ -575,7 +594,7 @@ Tree* SyntaxDiagrams::a5() {
 }
 
 Tree* SyntaxDiagrams::a6() {
-    string lex;
+    /*string lex;
     int type;
     int pos = scanner->getPos();
     type = scanner->scan(lex);
@@ -590,7 +609,8 @@ Tree* SyntaxDiagrams::a6() {
     else {
         scanner->printSemError("Невозможный тип операции для унарной операции + или -", 0);
         exit(0);
-    }
+    }*/
+    return a7();
 }
 
 Tree* SyntaxDiagrams::a7() {
@@ -682,6 +702,7 @@ Tree* SyntaxDiagrams::classAccess() {
         scanner->printError("идентификатор", lex);
         exit(0);
     }
+    var = Tree::cur->findFiled(var, lex);
     int pos = scanner->getPos();
     type = scanner->scan(lex);
     while (type == DOT) {

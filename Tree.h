@@ -77,6 +77,10 @@ public:
     Tree *check2Compatible(Tree *t, Tree *g);
 
     Tree *check1Compatible(Tree *t, Tree *g);
+
+    Tree *FindUpOneLevel(Tree *From, string id);
+
+    int DupControl(Tree *Addr, string a);
 };
 
 
