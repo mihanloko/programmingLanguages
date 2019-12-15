@@ -4,6 +4,7 @@
 #include <string>
 #include "Scanner.h"
 #include "SyntaxDiagrams.h"
+#include "LL.h"
 
 using namespace std;
 
@@ -50,11 +51,13 @@ int main (int argc, char *argv[]) {
     }
     //cout << words[code] << " " << lex << endl;
     scanner->setPos(0);
-    if (!errors || errors) {
+    /*if (!errors || errors) {
         SyntaxDiagrams *diagram = new SyntaxDiagrams(scanner);
         bool result = diagram->program();
         if (result) cout << "Ошибок нет";
-    }
+    }*/
+    LL *ll = new LL(scanner, words);
+    ll->analyze();
 
     return 0;
 }

@@ -43,7 +43,7 @@ int Scanner::scan(string &lex) {
                 printError("Слишком длинная константа");
                 return ERROR;
             }
-            return DEC;
+            return CONST;
         } else {
             //16 c/c
             lex.push_back(text[pos++]);
@@ -59,7 +59,7 @@ int Scanner::scan(string &lex) {
                         printError("Слишком длинная константа");
                         return ERROR;
                     }
-                    return HEX;
+                    return CONST;
                 }
                 else {
                     printError("нет цифр после 0x в шестнадцатиричной константе");
@@ -80,7 +80,7 @@ int Scanner::scan(string &lex) {
                     printError("Слишком длинная константа");
                     return ERROR;
                 }
-                return OCT;
+                return CONST;
             }
         }
     }

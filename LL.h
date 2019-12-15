@@ -9,6 +9,7 @@
 #include "Scanner.h"
 #include "defs.h"
 #include <string>
+#include <map>
 
 using namespace std;
 
@@ -17,8 +18,9 @@ private:
     Scanner *scanner;
     int magazine[5000];
     int pos = 0;
+    map<int, string> words;
 public:
-    LL(Scanner *scanner);
+    LL(Scanner *scanner, map<int, string> &words);
     void analyze();
 };
 

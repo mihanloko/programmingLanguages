@@ -8,6 +8,7 @@
 #define DEC 1
 #define OCT 2
 #define HEX 3
+#define CONST 4
 #define TYPE_INT 10
 #define TYPE_CHAR 11
 #define IDENT 12
