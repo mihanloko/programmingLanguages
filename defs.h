@@ -42,5 +42,43 @@
 #define ERROR 100
 #define END 200
 
+#define S 300
+#define DES 301
+#define CL 302
+#define CLIN 303
+#define MAIN 304
+#define OPVAR 305
+#define T 306
+#define OP 307
+#define EMOP 308
+#define COMPOP 309
+#define SIMOP 310
+#define IF 311
+#define ELSE 312
+#define ASSIG 313
+#define A0 314
+#define A1 315
+#define A11 316
+#define A2 317
+#define A22 318
+#define A3 319
+#define A33 320
+#define A4 321
+#define A44 322
+#define A5 323
+#define A55 324
+#define A6 325
+#define A7 326
+#define EXP 327
+#define VARDEF 328
+#define VARLIST 329
+#define VARDOP 330
+#define VAR 331
+#define P 332
+#define OBJ 333
+#define ARCL 334
+#define AR 335
+#define FIELD 336
+#define SQ 337
 
 #endif //SCANNER_DEFS_H
