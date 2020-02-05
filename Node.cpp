@@ -7,11 +7,11 @@
 Node::Node() {
     type = ObjFictive;
     lex = "";
-    dataType = "";
+    stringTypeName = "";
     size = 0;
 
 }
 
 string Node::toString() {
-    return "type: " + to_string(type) + " lex: "  + lex + " dataType: "+ dataType + " size: " + to_string(size);
+    return "type: " + to_string(type) + " lex: "  + lex + " dataType: "+ stringTypeName + " size: " + to_string(size);
 }

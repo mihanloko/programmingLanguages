@@ -393,7 +393,7 @@ void SyntaxDiagrams::operatorReturn() {
         exit(0);
     }
     Tree* expType = expression();
-    if (expType->getNode()->type != ObjInt && expType->getNode()->type != ObjChar) {
+    if (expType->getNode()->type != ObjVar) {
         scanner->printSemError("Должно быть int или char", 0);
         exit(0);
     }
@@ -546,7 +546,7 @@ Tree* SyntaxDiagrams::a4() {
     Tree *res = t;
 
     if (flag) {
-        if (t->getNode()->type == ObjInt || t->getNode()->type == ObjChar || t->getNode()->type == ObjUnknown) {
+        if (t->getNode()->type == ObjVar || t->getNode()->type == ObjUnknown) {
             ;
         }
         else {

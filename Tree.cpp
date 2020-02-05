@@ -144,10 +144,10 @@ Tree *Tree::findFiled(Tree *p, string field) {
         exit(0);
     }
 
-    string type = p->node->dataType;
-    Tree *typeDefinition = Tree::cur->FindUp(type);
-    while (typeDefinition != nullptr && typeDefinition->node->type != ObjStructDefinition)
-        typeDefinition = Tree::cur->FindUp(typeDefinition->parent, type);
+    Tree *typeDefinition = p->node->dataType;
+    string type = typeDefinition->getNode()->stringTypeName;
+//    while (typeDefinition != nullptr && typeDefinition->node->type != ObjStructDefinition)
+//        typeDefinition = Tree::cur->FindUp(typeDefinition->parent, type);
     if (typeDefinition == nullptr) {
         scanner->printSemError("Класс не объявлен " + type, type.size());
         exit(0);
@@ -176,12 +176,12 @@ Tree *Tree::checkArray(Tree *p, Tree *e) {
         exit(0);
     }
 
-    if (e->node->type != ObjInt && e->node->type != ObjChar) {
+    if (e->node->type != ObjVar) {
         scanner->printSemError("Значеник выражения не является целочисленным типом", 0);
         exit(0);
     }
 
-    return cur->FindUp(p->node->dataType);
+    return p->getNode()->dataType;
 }
 
 Node *Tree::getNode() const {
@@ -199,7 +199,7 @@ Tree *Tree::checkAssignCompatible(Tree *t, Tree *g) {
     if (t->node->type == ObjStruct || g->node->type == ObjStruct) {
         if (t->node->type == ObjStruct && g->node->type == ObjStruct) {
             if (t->node->dataType == g->node->dataType)
-                return cur->FindUp(t->node->dataType);
+                return t->node->dataType;
             else {
                 scanner->printSemError("разные классы", 0);
                 exit(0);
@@ -214,10 +214,10 @@ Tree *Tree::checkAssignCompatible(Tree *t, Tree *g) {
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
 
-    if (t->node->type == ObjChar && g->node->type == ObjChar)
+    if (t->node->typeName == ObjChar && g->node->typeName == ObjChar)
         return t;
-    if (t->node->type == ObjInt || g->node->type == ObjInt)
-        return t->node->type == ObjInt ? t : g;
+    if (t->node->typeName == ObjInt || g->node->typeName == ObjInt)
+        return t->node->typeName == ObjInt ? t : g;
 
 
     scanner->printSemError("Неверный тип", 0);
@@ -247,14 +247,21 @@ Tree *Tree::createVar(Tree *type, string lex) {
         exit(0);
     }
     Node *n = new Node();
-    n->dataType = type->node->lex;
+    n->dataType = type;
+    n->stringTypeName = type->node->lex;
     n->lex = lex;
-    if (type->node->lex == "int")
-        n->type = ObjInt;
-    else if (type->node->lex == "char")
-        n->type = ObjChar;
-    else
+    if (type->node->lex == "int") {
+        n->type = ObjVar;
+        n->typeName = ObjInt;
+    }
+    else if (type->node->lex == "char") {
+        n->type = ObjVar;
+        n->typeName = ObjChar;
+    }
+    else {
         n->type = ObjStruct;
+        n->typeName = ObjClass;
+    }
 
     cur->SetLeft(n);
     cur = cur->left;
@@ -273,12 +280,15 @@ Tree *Tree::makeVarArray(string size) {
 
 Tree *Tree::makeTypeFromArray(Tree *pTree) {
     Node *n = new Node();
-    if (pTree->node->dataType == "int") {
-        n->type = ObjInt;
-    } else if (pTree->node->dataType == "char") {
-        n->type = ObjChar;
+    if (pTree->node->stringTypeName == "int") {
+        n->type = ObjVar;
+        n->typeName = ObjInt;
+    } else if (pTree->node->stringTypeName == "char") {
+        n->type = ObjVar;
+        n->typeName = ObjClass;
     } else {
         n->type = ObjStruct;
+        n->typeName = ObjClass;
     }
     n->dataType = pTree->node->dataType;
 
@@ -287,8 +297,9 @@ Tree *Tree::makeTypeFromArray(Tree *pTree) {
 
 Tree *Tree::makeIntVar() {
     Node *n = new Node();
-    n->type = ObjInt;
-    n->dataType = "int";
+    n->type = ObjVar;
+    n->typeName = ObjInt;
+    n->stringTypeName = "int";
 
     return new Tree(n);
 }
@@ -303,9 +314,9 @@ Tree *Tree::check5Compatible(Tree *t, Tree *g) {
     }
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
-    if (t->node->type == ObjInt || g->node->type == ObjInt)
-        return t->node->type == ObjInt ? t : g;
-    if (t->node->type == ObjChar && g->node->type == ObjChar)
+    if (t->node->typeName == ObjInt || g->node->typeName == ObjInt)
+        return t->node->typeName == ObjInt ? t : g;
+    if (t->node->typeName == ObjChar && g->node->typeName == ObjChar)
         return t;
     return nullptr;
 }
@@ -320,9 +331,9 @@ Tree *Tree::check4Compatible(Tree *t, Tree *g) {
     }
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
-    if (t->node->type == ObjInt || g->node->type == ObjInt)
-        return t->node->type == ObjInt ? t : g;
-    if (t->node->type == ObjChar && g->node->type == ObjChar)
+    if (t->node->typeName == ObjInt || g->node->typeName == ObjInt)
+        return t->node->typeName == ObjInt ? t : g;
+    if (t->node->typeName == ObjChar && g->node->typeName == ObjChar)
         return t;
     return nullptr;
 }
@@ -338,9 +349,9 @@ Tree *Tree::check3Compatible(Tree *t, Tree *g) {
 
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
-    if (t->node->type == ObjInt || g->node->type == ObjInt)
-        return t->node->type == ObjInt ? t : g;
-    if (t->node->type == ObjChar && g->node->type == ObjChar)
+    if (t->node->typeName == ObjInt || g->node->typeName == ObjInt)
+        return t->node->typeName == ObjInt ? t : g;
+    if (t->node->typeName == ObjChar && g->node->typeName == ObjChar)
         return t;
     return nullptr;
 }
@@ -356,9 +367,9 @@ Tree *Tree::check2Compatible(Tree *t, Tree *g) {
 
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
-    if (t->node->type == ObjInt || g->node->type == ObjInt)
-        return t->node->type == ObjInt ? t : g;
-    if (t->node->type == ObjChar && g->node->type == ObjChar)
+    if (t->node->typeName == ObjInt || g->node->typeName == ObjInt)
+        return t->node->typeName == ObjInt ? t : g;
+    if (t->node->typeName == ObjChar && g->node->typeName == ObjChar)
         return t;
     return nullptr;
 }
@@ -405,9 +416,9 @@ Tree *Tree::check1Compatible(Tree *t, Tree *g) {
 
     if (t->node->type == ObjUnknown || g->node->type == ObjUnknown)
         return t->node->type == ObjUnknown ? t : g;
-    if (t->node->type == ObjInt || g->node->type == ObjInt)
-        return t->node->type == ObjInt ? t : g;
-    if (t->node->type == ObjChar && g->node->type == ObjChar)
+    if (t->node->typeName == ObjInt || g->node->typeName == ObjInt)
+        return t->node->typeName == ObjInt ? t : g;
+    if (t->node->typeName == ObjChar && g->node->typeName == ObjChar)
         return t;
     return nullptr;
 }
