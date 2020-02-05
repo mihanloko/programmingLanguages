@@ -28,8 +28,8 @@ void LL::analyze() {
             } else {
                 scanner->printError(words[magazine[pos]], lex);
                 cout << endl;
-                for (int i = pos + 5; i > -1; i--)
-                    cout << words[magazine[i]] << endl;
+//                for (int i = pos + 5; i > -1; i--)
+//                    cout << words[magazine[i]] << endl;
                 return;
             }
         } else { ///not terminal
