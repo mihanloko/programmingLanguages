@@ -47,6 +47,8 @@ struct Node {
     string toString();
 
     Node();
+
+    Node* copy();
 };
 
 

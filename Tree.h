@@ -81,6 +81,9 @@ public:
     Tree *FindUpOneLevel(Tree *From, string id);
 
     int DupControl(Tree *Addr, string a);
+
+    Tree* copy(Tree *p);
+    Tree* copy();
 };
 
 

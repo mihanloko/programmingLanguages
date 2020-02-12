@@ -422,3 +422,18 @@ Tree *Tree::check1Compatible(Tree *t, Tree *g) {
         return t;
     return nullptr;
 }
+
+Tree *Tree::copy(Tree *p) {
+    Tree* newTree = this->copy();
+    newTree->parent= p;
+    return newTree;
+}
+
+Tree *Tree::copy() {
+    Tree* newTree = new Tree();
+    newTree->node = node->copy();
+    newTree->parent = parent;
+    newTree->left = left == nullptr ? nullptr : left->copy();
+    newTree->right = right == nullptr ? nullptr : right->copy();
+    return newTree;
+}
