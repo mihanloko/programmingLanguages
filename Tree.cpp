@@ -9,6 +9,7 @@ using namespace std;
 
 Tree *Tree::cur = (Tree *) nullptr;
 Scanner *Tree::scanner = (Scanner *) nullptr;
+bool Tree::flagInterpret = false;
 
 Tree::Tree(Tree *l, Tree *r, Tree *u, Node *Data) {
     left = l;
@@ -37,6 +38,7 @@ void Tree::SetRight(Node *Data) {
 }
 
 Tree *Tree::FindUp(Tree *From, string id) {
+    if (!flagInterpret) return nullptr;
     Tree *cur = From;
     while (cur != nullptr && (cur->node->lex != id)) {
         cur = cur->parent;
@@ -48,6 +50,7 @@ Tree *Tree::FindUpOneLevel(Tree *From, string id)
 // Поиск элемента id вверх по дереву от текущей вершины From.
 // Поиск осуществляется на одном уровне вложенности по левым связям
 {
+    if (!flagInterpret) return nullptr;
     Tree *i = From;
 // текущая вершина поиска
     while ((i != NULL) && (i->parent != nullptr && i->parent->right != i)) {
@@ -63,19 +66,23 @@ int Tree::DupControl(Tree *Addr, string a)
 // Проверка идентификатора а на повторное описание внутри блока.
 // Поиск осуществляется вверх от вершины Addr.
 {
+    if (!flagInterpret) return 0;
     if (FindUpOneLevel(Addr, a) == NULL) return 0;
     return 1;
 }
 
 Tree *Tree::FindUp(string id) {
+    if (!flagInterpret) return nullptr;
     return FindUp(this, id);
 }
 
 Tree *Tree::FindRightLeft(string id) {
+    if (!flagInterpret) return nullptr;
     return FindRightLeft(this, id);
 }
 
 Tree *Tree::FindRightLeft(Tree *From, string id) {
+    if (!flagInterpret) return nullptr;
     Tree *cur = From->right;
     while (cur != nullptr && (cur->node->lex != id)) {
         cur = cur->left;
@@ -89,12 +96,15 @@ Tree::Tree(Node *data) {
 }
 
 Tree *Tree::goUp(Tree *blockParent) {
-    while (cur != blockParent)
-        cur = cur->parent;
+    if (!flagInterpret) return nullptr;
+    /*while (cur != blockParent)
+        cur = cur->parent;*/
+    cur = blockParent;
     return cur;
 }
 
 Tree *Tree::openBlock(string lex, Type type) {
+    if (!flagInterpret) return nullptr;
     if (!lex.empty() && cur->FindUp(lex) != nullptr) {
         scanner->printSemError("Идентификатор уже объявлен " + lex, lex.size());
     }
@@ -124,6 +134,7 @@ void Tree::Print(int k) {
 }
 
 Tree *Tree::isExist(string lex) {
+    if (!flagInterpret) return nullptr;
     Tree *n = cur->FindUp(lex);
     if (n == nullptr) {
         scanner->printSemError("Идентификатор " + lex + " не объявлен", lex.size());
@@ -138,6 +149,7 @@ Tree *Tree::isExist(string lex) {
 }
 
 Tree *Tree::findFiled(Tree *p, string field) {
+    if (!flagInterpret) return nullptr;
     if (p->node->type != ObjStruct) {
         scanner->printSemError("Попытка обратиться к полю, но " + p->node->lex + " не является структурой",
                                field.size() + 1);
@@ -171,6 +183,7 @@ Tree *Tree::findFiled(Tree *p, string field) {
 }
 
 Tree *Tree::checkArray(Tree *p, Tree *e) {
+    if (!flagInterpret) return nullptr;
     if (p->node->type != ObjArray) {
         scanner->printSemError(p->node->lex + " не является массивом, оператор [] неуместен", 1);
         exit(0);
@@ -185,10 +198,12 @@ Tree *Tree::checkArray(Tree *p, Tree *e) {
 }
 
 Node *Tree::getNode() const {
+    if (!flagInterpret) return nullptr;
     return node;
 }
 
 Tree *Tree::checkAssignCompatible(Tree *t, Tree *g) {
+    if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
         t->node->type == ObjMain || g->node->type == ObjMain ||
         t->node->type == ObjArray || g->node->type == ObjArray) {
@@ -225,6 +240,7 @@ Tree *Tree::checkAssignCompatible(Tree *t, Tree *g) {
 }
 
 Tree *Tree::findClassDefinition(string lex) {
+    if (!flagInterpret) return nullptr;
     Tree *type = cur->FindUp(lex);
     while (type != nullptr && type->node->type != ObjStructDefinition)
         type = type->FindUp(type->parent, lex);
@@ -240,7 +256,7 @@ Tree *Tree::findClassDefinition(string lex) {
 }
 
 Tree *Tree::createVar(Tree *type, string lex) {
-
+    if (!flagInterpret) return nullptr;
     Tree *p = cur->FindUp(lex);
     if (DupControl(this, lex)) {
         scanner->printSemError("Объект " + lex + " уже существует", lex.size());
@@ -273,12 +289,14 @@ Tree *Tree::createVar(Tree *type, string lex) {
 }
 
 Tree *Tree::makeVarArray(string size) {
+    if (!flagInterpret) return nullptr;
     this->node->size = stoi(size);
     this->node->type = ObjArray;
     return this;
 }
 
 Tree *Tree::makeTypeFromArray(Tree *pTree) {
+    if (!flagInterpret) return nullptr;
     Node *n = new Node();
     if (pTree->node->stringTypeName == "int") {
         n->type = ObjVar;
@@ -296,6 +314,7 @@ Tree *Tree::makeTypeFromArray(Tree *pTree) {
 }
 
 Tree *Tree::makeIntVar() {
+    if (!flagInterpret) return nullptr;
     Node *n = new Node();
     n->type = ObjVar;
     n->typeName = ObjInt;
@@ -305,6 +324,7 @@ Tree *Tree::makeIntVar() {
 }
 
 Tree *Tree::check5Compatible(Tree *t, Tree *g) {
+    if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
         t->node->type == ObjMain || g->node->type == ObjMain ||
         t->node->type == ObjArray || g->node->type == ObjArray ||
@@ -322,6 +342,7 @@ Tree *Tree::check5Compatible(Tree *t, Tree *g) {
 }
 
 Tree *Tree::check4Compatible(Tree *t, Tree *g) {
+    if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
         t->node->type == ObjMain || g->node->type == ObjMain ||
         t->node->type == ObjArray || g->node->type == ObjArray ||
@@ -339,6 +360,7 @@ Tree *Tree::check4Compatible(Tree *t, Tree *g) {
 }
 
 Tree *Tree::check3Compatible(Tree *t, Tree *g) {
+    if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
         t->node->type == ObjMain || g->node->type == ObjMain ||
         t->node->type == ObjArray || g->node->type == ObjArray ||
@@ -357,6 +379,7 @@ Tree *Tree::check3Compatible(Tree *t, Tree *g) {
 }
 
 Tree *Tree::check2Compatible(Tree *t, Tree *g) {
+    if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
         t->node->type == ObjMain || g->node->type == ObjMain ||
         t->node->type == ObjArray || g->node->type == ObjArray ||
@@ -375,6 +398,7 @@ Tree *Tree::check2Compatible(Tree *t, Tree *g) {
 }
 
 Tree *Tree::check1Compatible(Tree *t, Tree *g) {
+    if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition) {
         scanner->printSemError("Невозможный тип для операций сравнения", 0);
         exit(0);
@@ -436,4 +460,16 @@ Tree *Tree::copy() {
     newTree->left = left == nullptr ? nullptr : left->copy();
     newTree->right = right == nullptr ? nullptr : right->copy();
     return newTree;
+}
+
+bool Tree::isFlagInterpret() {
+    return flagInterpret;
+}
+
+void Tree::setFlagInterpret(bool flagInterpret) {
+    Tree::flagInterpret = flagInterpret;
+}
+
+Tree *Tree::getRight() {
+    return right;
 }

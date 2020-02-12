@@ -13,6 +13,7 @@ class Tree {
 private:
     Tree *left, *right, *parent;
     Node *node;
+    static bool flagInterpret;
 public:
     Tree *getLeft() { return left;}
 
@@ -84,6 +85,12 @@ public:
 
     Tree* copy(Tree *p);
     Tree* copy();
+
+    static bool isFlagInterpret();
+
+    static void setFlagInterpret(bool flagInterpret);
+
+    Tree* getRight();
 };
 
 

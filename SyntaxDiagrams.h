@@ -10,7 +10,7 @@
 #include "Tree.h"
 #include <string>
 
-#define isConst (type == HEX || type == DEC || type == OCT)
+#define isConst (type == HEX || type == DEC || type == OCT || type == CONST)
 
 class SyntaxDiagrams {
 public:
