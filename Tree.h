@@ -91,6 +91,8 @@ public:
     static void setFlagInterpret(bool flagInterpret);
 
     Tree* getRight();
+
+    void nullRight();
 };
 
 

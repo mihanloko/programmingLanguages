@@ -9,7 +9,7 @@ using namespace std;
 
 Tree *Tree::cur = (Tree *) nullptr;
 Scanner *Tree::scanner = (Scanner *) nullptr;
-bool Tree::flagInterpret = false;
+bool Tree::flagInterpret = true;
 
 Tree::Tree(Tree *l, Tree *r, Tree *u, Node *Data) {
     left = l;
@@ -129,8 +129,8 @@ void Tree::Print(int k) {
     if (left != nullptr) printf("  слева данные %s", left->node->lex.c_str());
     if (right != nullptr) printf("  справа данные %s", right->node->lex.c_str());
     printf("\n");
-    if (left != nullptr) left->Print(k);
     if (right != nullptr) right->Print(k + 1);
+    if (left != nullptr) left->Print(k);
 }
 
 Tree *Tree::isExist(string lex) {
@@ -277,10 +277,19 @@ Tree *Tree::createVar(Tree *type, string lex) {
     else {
         n->type = ObjStruct;
         n->typeName = ObjClass;
+        //todo копировать
     }
 
     cur->SetLeft(n);
     cur = cur->left;
+    if (n->type == ObjStruct) {
+        cur->right = type->right->copy();
+        Tree *root = cur;
+        /*while (root->parent != nullptr)
+            root = root->parent;
+        root->Print(0);
+        cout << endl << endl;*/
+    }
     Tree *i = cur;
 //    while (i->parent != nullptr)
 //        i = i->parent;
@@ -472,4 +481,8 @@ void Tree::setFlagInterpret(bool flagInterpret) {
 
 Tree *Tree::getRight() {
     return right;
+}
+
+void Tree::nullRight() {
+    this->right = nullptr;
 }

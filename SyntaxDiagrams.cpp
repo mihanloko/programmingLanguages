@@ -165,7 +165,7 @@ void SyntaxDiagrams::variableList(Tree *typeDef) {
             scanner->setPos(pos);
             variable(typeDef);
         } else {
-            scanner->printError("идентификатор", lex);
+            scanner->printError("идентификатор", lex);//todo сделать массив объектов
             exit(0);
         }
         pos = scanner->getPos();
@@ -348,6 +348,7 @@ void SyntaxDiagrams::compoundOperator() {
     if (Tree::isFlagInterpret()) {
         Tree::cur->goUp(old);
         delete old->getRight();
+        old->nullRight();
     }
 }
 
