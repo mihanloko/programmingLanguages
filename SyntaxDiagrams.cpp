@@ -263,6 +263,7 @@ void SyntaxDiagrams::main() {
     if (Tree::isFlagInterpret()) {
         Tree::cur->goUp(old);
         delete old->getRight();
+        old->nullRight();
     }
 }
 
