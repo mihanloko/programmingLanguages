@@ -53,13 +53,13 @@ Tree *Tree::FindUpOneLevel(Tree *From, string id)
     if (!flagInterpret) return nullptr;
     Tree *i = From;
 // текущая вершина поиска
-    while ((i != NULL) && (i->parent != nullptr && i->parent->right != i)) {
+    while ((i != nullptr) && (i->parent != nullptr && i->parent->right != i)) {
         if (id == i->node->lex)
             return i; // нaшли совпадающий идентификатор
         i = i->parent;
 // поднимаемся наверх по связям
     }
-    return NULL;
+    return nullptr;
 }
 
 int Tree::DupControl(Tree *Addr, string a)
@@ -67,7 +67,7 @@ int Tree::DupControl(Tree *Addr, string a)
 // Поиск осуществляется вверх от вершины Addr.
 {
     if (!flagInterpret) return 0;
-    if (FindUpOneLevel(Addr, a) == NULL) return 0;
+    if (FindUpOneLevel(Addr, a) == nullptr) return 0;
     return 1;
 }
 
@@ -284,16 +284,16 @@ Tree *Tree::createVar(Tree *type, string lex) {
     cur = cur->left;
     if (n->type == ObjStruct) {
         cur->right = type->right->copy();
-        Tree *root = cur;
-        /*while (root->parent != nullptr)
+        /*Tree *root = cur;
+        while (root->parent != nullptr)
             root = root->parent;
         root->Print(0);
         cout << endl << endl;*/
     }
-    Tree *i = cur;
+//    Tree *i = cur;
 //    while (i->parent != nullptr)
 //        i = i->parent;
-    //i->Print(0);
+//    i->Print(0);
     return cur;
 }
 
@@ -485,4 +485,8 @@ Tree *Tree::getRight() {
 
 void Tree::nullRight() {
     this->right = nullptr;
+}
+
+void Tree::setRight(Tree *right) {
+    Tree::right = right;
 }

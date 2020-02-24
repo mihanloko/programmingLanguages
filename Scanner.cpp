@@ -243,5 +243,6 @@ void Scanner::printSemError(const string &er, int d) {
         }
     }
     cout << er << " строка " << erLine << " позиция " << erPos << endl;
+    exit(0);
 }
 

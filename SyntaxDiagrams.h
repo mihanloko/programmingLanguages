@@ -38,7 +38,7 @@ public:
     Tree * a6();
     Tree * a7();
     Tree * assign();
-    Tree * arrayAccess();
+    int arrayAccess();
     Tree * classAccess();
 
 

@@ -93,6 +93,8 @@ public:
     Tree* getRight();
 
     void nullRight();
+
+    void setRight(Tree *right);
 };
 
 

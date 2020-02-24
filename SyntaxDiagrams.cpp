@@ -654,11 +654,29 @@ Tree* SyntaxDiagrams::a7() {
         }
         return typeExp;
     } else if (type == IDENT) {
+        Tree* var = Tree::cur->FindUp(lex);
         int pos = scanner->getPos();
         type = scanner->scan(lex);
         if (type == SQUARE_LEFT) {
             scanner->setPos(pos1);
-            return arrayAccess();
+            int ind = arrayAccess();
+            Node* res = var->getNode()->copy();
+            switch (var->getNode()->typeName) {
+                case ObjInt:
+                    res->type = ObjVar;
+                    res->data.intVariable = res->data.intArray[ind];
+                    break;
+                case ObjChar:
+                    res->type = ObjVar;
+                    res->data.charVariable = res->data.charArray[ind];
+                    break;
+                case ObjClass:
+                    res->type = ObjStruct;
+                    Tree* treeRes = new Tree(res);
+                    treeRes->setRight(var->getNode()->dataType->copy());
+                    return treeRes;
+            }
+            return new Tree(res);
         } else if (type == DOT) {
             scanner->setPos(pos1);
             return classAccess();
@@ -674,7 +692,7 @@ Tree* SyntaxDiagrams::a7() {
     }
 }
 
-Tree* SyntaxDiagrams::arrayAccess() {
+int SyntaxDiagrams::arrayAccess() {
     string lex;
     int type;
     type = scanner->scan(lex);
@@ -697,12 +715,13 @@ Tree* SyntaxDiagrams::arrayAccess() {
         scanner->printError("константа", lex);
         exit(0);
     }
+    int ind = std::stoi(lex);
     type = scanner->scan(lex);
     if (type != SQUARE_RIGHT) {
         scanner->printError("]", lex);
         exit(0);
     }
-    return Tree::cur->makeTypeFromArray(var);
+    return ind;
 }
 
 Tree* SyntaxDiagrams::classAccess() {
