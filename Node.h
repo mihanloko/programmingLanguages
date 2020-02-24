@@ -28,6 +28,14 @@ enum TypeName {
     ObjClass
 };
 
+union DataValue {
+    int* intArray;
+    char* charArray;
+    int intVariable;
+    char charVariable;
+    Tree** structArray;
+};
+
 struct Node {
     Type type;  //тип
     string lex;  //обозначение
@@ -36,13 +44,7 @@ struct Node {
     int size; // размер массива
     string stringTypeName;
 
-    union {
-        int* intArray;
-        char* charArray;
-        int intVariable;
-        char charVariable;
-        Tree** structArray;
-    } data; // значение
+    DataValue data; // значение
 
     string toString();
 
