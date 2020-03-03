@@ -194,7 +194,7 @@ Tree *Tree::checkArray(Tree *p, Tree *e) {
         exit(0);
     }
 
-    return p->getNode()->dataType;
+    return p;
 }
 
 Node *Tree::getNode() const {
@@ -205,8 +205,7 @@ Node *Tree::getNode() const {
 Tree *Tree::checkAssignCompatible(Tree *t, Tree *g) {
     if (!flagInterpret) return nullptr;
     if (t->node->type == ObjStructDefinition || g->node->type == ObjStructDefinition ||
-        t->node->type == ObjMain || g->node->type == ObjMain ||
-        t->node->type == ObjArray || g->node->type == ObjArray) {
+        t->node->type == ObjMain || g->node->type == ObjMain) {
         scanner->printSemError("Неприсваемый тип", 0);
         exit(0);
     }
@@ -266,6 +265,7 @@ Tree *Tree::createVar(Tree *type, string lex) {
     n->dataType = type;
     n->stringTypeName = type->node->lex;
     n->lex = lex;
+
     if (type->node->lex == "int") {
         n->type = ObjVar;
         n->typeName = ObjInt;
@@ -301,6 +301,17 @@ Tree *Tree::makeVarArray(string size) {
     if (!flagInterpret) return nullptr;
     this->node->size = stoi(size);
     this->node->type = ObjArray;
+    if (this->node->typeName == ObjInt) {
+        this->node->data.intArray = new int[this->node->size];
+    } else if (this->node->typeName == ObjChar) {
+        this->node->data.charArray = new char[this->node->size];
+    }
+    else {
+        this->node->data.structArray = new Tree*[this->node->size];
+        for (int i = 0; i < this->node->size; i++) {
+            this->node->data.structArray[i] = this->node->dataType->copy();
+        }
+    }
     return this;
 }
 
@@ -322,12 +333,13 @@ Tree *Tree::makeTypeFromArray(Tree *pTree) {
     return new Tree(n);
 }
 
-Tree *Tree::makeIntVar() {
+Tree *Tree::makeIntVar(string lex) {
     if (!flagInterpret) return nullptr;
     Node *n = new Node();
     n->type = ObjVar;
     n->typeName = ObjInt;
     n->stringTypeName = "int";
+    n->data.intVariable = std::stoi(lex);
 
     return new Tree(n);
 }

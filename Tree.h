@@ -67,7 +67,7 @@ public:
 
     Tree *makeTypeFromArray(Tree *pTree);
 
-    Tree *makeIntVar();
+    Tree *makeIntVar(string lex);
 
     Tree* check5Compatible(Tree *t, Tree *g);
 

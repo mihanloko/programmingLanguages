@@ -29,4 +29,22 @@ Node *Node::copy() {
     return newNode;
 }
 
+Node::~Node() {
+    if (type == ObjArray) {
+        switch (typeName) {
+            case ObjInt:
+                delete data.intArray;
+                break;
+            case ObjChar:
+                delete data.charArray;
+                break;
+            case ObjClass:
+                for (int i = 0; i < size; i++)
+                    delete[] data.structArray;
+                delete data.structArray;
+                break;
+        }
+    }
+}
+
 

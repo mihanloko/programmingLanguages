@@ -51,6 +51,8 @@ struct Node {
     Node();
 
     Node* copy();
+
+    virtual ~Node();
 };
 
 
