@@ -14,7 +14,10 @@ private:
     Tree *left, *right, *parent;
     Node *node;
     static bool flagInterpret;
+
 public:
+
+    static bool flagReturn;
     Tree *getLeft() { return left;}
 
     Node *getNode() const;

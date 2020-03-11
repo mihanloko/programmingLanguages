@@ -10,6 +10,7 @@ using namespace std;
 Tree *Tree::cur = (Tree *) nullptr;
 Scanner *Tree::scanner = (Scanner *) nullptr;
 bool Tree::flagInterpret = true;
+bool Tree::flagReturn = false;
 
 Tree::Tree(Tree *l, Tree *r, Tree *u, Node *Data) {
     left = l;
