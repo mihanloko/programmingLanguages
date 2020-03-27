@@ -82,4 +82,27 @@
 #define FIELD 336
 #define SQ 337
 
+#define SET_CLASS 400
+#define BACK 401
+#define START_MAIN 402
+#define SAVE_TYPE 403
+#define CHECK_TYPE 404
+#define CHECK_CONDITION 405
+#define PUSH 406
+#define MATCH_ASSIGN 407
+#define MATCH_1 408
+#define MATCH_2 409
+#define MATCH_3 410
+#define MATCH_4 411
+#define MATCH_5 412
+#define FIND 413
+#define MAKE_ARRAY 414
+#define POP 415
+#define CHECK_ARRAY 416
+#define ADD 417
+#define NEW_BLOCK 418
+#define MATCH_6 419
+#define MATCH_CONST 420
+#define FIND_FIELD 421
+
 #endif //SCANNER_DEFS_H

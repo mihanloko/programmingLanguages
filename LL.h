@@ -19,6 +19,7 @@ private:
     int magazine[5000];
     int pos = 0;
     map<int, string> words;
+    string lastLex;
 public:
     LL(Scanner *scanner, map<int, string> &words);
     void analyze();
