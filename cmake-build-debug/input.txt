@@ -1,0 +1,21 @@
+class ABC {
+    int a, b, c;
+    char d[100];
+};
+
+int main() {
+    int a, b, c;
+    if (c < b) {
+        a = 5 + 7;
+    }
+    else
+        c = 6 * 8;
+
+    if (a * 5)
+        ((((((b * 8))))));
+
+    ABC abc;
+    char bc = abc.d[100] << 39;
+    //int e = b[10];
+    char gh = abc;
+}
