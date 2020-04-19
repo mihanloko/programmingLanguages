@@ -104,5 +104,6 @@
 #define MATCH_6 419
 #define MATCH_CONST 420
 #define FIND_FIELD 421
+#define PUSH_CONST 422
 
 #endif //SCANNER_DEFS_H

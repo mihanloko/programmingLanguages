@@ -98,6 +98,14 @@ public:
     void nullRight();
 
     void setRight(Tree *right);
+
+    void goUp();
+
+    Tree *makeIntVar();
+
+    Tree *makeVarArray();
+
+    Tree *check6Compatible(Tree *t);
 };
 
 

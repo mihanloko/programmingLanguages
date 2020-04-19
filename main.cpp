@@ -56,8 +56,8 @@ int main (int argc, char *argv[]) {
         bool result = diagram->program();
         if (result) cout << "Ошибок нет";
     }*/
-    /*LL *ll = new LL(scanner, words);
-    ll->analyze();*/
+    LL *ll = new LL(scanner, words);
+    ll->analyze();
 
     return 0;
 }

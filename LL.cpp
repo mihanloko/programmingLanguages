@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "LL.h"
-#include "Tree.h"
+
 
 LL::LL(Scanner *scanner, map<int, string> &words) {
     this->scanner = scanner;
@@ -36,6 +36,8 @@ void LL::analyze() {
                 if (type == END) run = 0;
                 else {
                     //type = scanner->scan(lex);
+                    if (type == TYPE_INT || type == TYPE_CHAR || type == IDENT)
+                        lastLex = lex;
                     pos--;
                 }
             } else {
@@ -48,50 +50,105 @@ void LL::analyze() {
         } else if (magazine[pos] >= SET_CLASS) { ///semantic function
             switch (magazine[pos]) {
                 case BACK:
+                    Tree::cur->goUp();
                     break;
                 case START_MAIN:
+                    Tree::cur->openBlock("main", ObjMain);
                     break;
                 case SAVE_TYPE:
+                    magazineTypes[typePos++] = Tree::cur->findClassDefinition(lastLex);
                     break;
                 case CHECK_TYPE:
-                    break;
-                case CHECK_CONDITION:
+                /*{
+                    Tree* cur = Tree::cur;
+                    while (cur->parent != nullptr) {
+                        cout << cur->node->lex << endl;
+                        cur = cur->parent;
+                    }
+                }*/
+                    Tree::cur->findClassDefinition(lastLex);
                     break;
                 case PUSH:
+                    magazineTypes[typePos++] = Tree::cur->FindUp(lastLex);
+                    break;
+                case PUSH_CONST:
+                    magazineTypes[typePos++] = Tree::cur->makeIntVar();
                     break;
                 case MATCH_ASSIGN:
+                    magazineTypes[typePos - 1] = Tree::cur->checkAssignCompatible(magazineTypes[typePos - 1],
+                                                                                  magazineTypes[typePos - 2]);
+                    typePos--;
                     break;
                 case MATCH_1:
+                    magazineTypes[typePos - 1] = Tree::cur->check1Compatible(magazineTypes[typePos - 1],
+                                                                             magazineTypes[typePos - 2]);
+                    typePos--;
                     break;
                 case MATCH_2:
+                    magazineTypes[typePos - 1] = Tree::cur->check2Compatible(magazineTypes[typePos - 1],
+                                                                             magazineTypes[typePos - 2]);
+                    typePos--;
                     break;
                 case MATCH_3:
+                    magazineTypes[typePos - 1] = Tree::cur->check3Compatible(magazineTypes[typePos - 1],
+                                                                             magazineTypes[typePos - 2]);
+                    typePos--;
                     break;
                 case MATCH_4:
+                    magazineTypes[typePos - 1] = Tree::cur->check4Compatible(magazineTypes[typePos - 1],
+                                                                             magazineTypes[typePos - 2]);
+                    typePos--;
                     break;
                 case MATCH_5:
+                    magazineTypes[typePos - 1] = Tree::cur->check5Compatible(magazineTypes[typePos - 1],
+                                                                             magazineTypes[typePos - 2]);
+                    typePos--;
                     break;
                 case FIND:
+                    lastType = Tree::cur->FindUp(lastLex);
+                    if (lastType == nullptr) {
+                        scanner->printSemError("Идентификатор " + lastLex + " не объявлен", lastLex.size());
+                    }
                     break;
                 case MAKE_ARRAY:
+                    lastType->makeVarArray();
                     break;
                 case POP:
+                    typePos--;
                     break;
-                case CHECK_ARRAY:
+                case CHECK_ARRAY: {
+                    //Tree *checkedArr = Tree::cur->FindUp(lastLex);
+                    if (!(lastType->getNode()->type == ObjArray))
+                        scanner->printSemError("Объект " + lastType->getNode()->lex + " не является массивом", lastLex.size());
+                }
                     break;
                 case ADD:
+                    lastType = Tree::cur->createVar(magazineTypes[typePos - 1], lastLex);
                     break;
                 case NEW_BLOCK:
+                    Tree::cur->openBlock("", ObjFictive);
                     break;
                 case MATCH_6:
+                    magazineTypes[typePos - 1] = Tree::cur->check6Compatible(magazineTypes[typePos - 1]);
                     break;
                 case MATCH_CONST:
+                    if (magazineTypes[typePos - 1]->getNode()->typeName != ObjChar &&
+                            magazineTypes[typePos - 1]->getNode()->typeName != ObjInt)
+                        scanner->printSemError("Значение выражения не явлется целым типом", lastLex.size());
                     break;
                 case FIND_FIELD:
+                    lastType = lastType->findFiled(lastType, lastLex);
+                    break;
+                case SET_CLASS:
+                    if (Tree::cur->FindUp(lastLex) != nullptr) {
+                        scanner->printSemError("Идентификатор " + lastLex + "уже объявлен", lastLex.size());
+                        exit(0);
+                    }
+                    Tree::cur->openBlock(lastLex, ObjStructDefinition);
                     break;
             }
-        }
-        else { ///not terminal
+            pos--;
+        } else { ///not terminal
             switch (magazine[pos]) {
                 case S: {
                     string saveLex = lex;
@@ -125,8 +182,7 @@ void LL::analyze() {
                             type = scanner->scan(lex);
                             if (type == WORD_MAIN) {
                                 magazine[pos++] = MAIN;
-                            }
-                            else {
+                            } else {
                                 magazine[pos++] = VARDEF;
                             }
                             scanner->setPos(savePos);
@@ -146,8 +202,7 @@ void LL::analyze() {
                     magazine[pos++] = IDENT;
                     magazine[pos++] = WORD_CLASS;
                     break;
-                case CLIN:
-                {
+                case CLIN: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -170,8 +225,7 @@ void LL::analyze() {
                     magazine[pos++] = WORD_MAIN;
                     magazine[pos++] = TYPE_INT;
                     break;
-                case OPVAR:
-                {
+                case OPVAR: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -201,8 +255,7 @@ void LL::analyze() {
                             if (type == IDENT) {
                                 magazine[pos++] = OPVAR;
                                 magazine[pos++] = VARDEF;
-                            }
-                            else {
+                            } else {
                                 magazine[pos++] = OPVAR;
                                 magazine[pos++] = OP;
                             }
@@ -302,8 +355,7 @@ void LL::analyze() {
                     magazine[pos++] = ASSIGN;
                     magazine[pos++] = OBJ;
                     break;
-                case A0:
-                {
+                case A0: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -319,14 +371,12 @@ void LL::analyze() {
                             magazine[pos++] = A1;
                             magazine[pos++] = ASSIGN;
                             magazine[pos++] = OBJ;
-                        }
-                        else {
+                        } else {
                             magazine[pos++] = A1;
                         }
                         lex = saveLex;
                         scanner->setPos(savePos);
-                    }
-                    else {
+                    } else {
                         magazine[pos++] = A1;
                     }
                     scanner->setPos(savePos);
@@ -353,8 +403,7 @@ void LL::analyze() {
                     magazine[pos++] = A55;
                     magazine[pos++] = A6;
                     break;
-                case A11:
-                {
+                case A11: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -370,8 +419,7 @@ void LL::analyze() {
                     lex = saveLex;
                 }
                     break;
-                case A22:
-                {
+                case A22: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -387,8 +435,7 @@ void LL::analyze() {
                     lex = saveLex;
                 }
                     break;
-                case A33:
-                {
+                case A33: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -404,8 +451,7 @@ void LL::analyze() {
                     lex = saveLex;
                 }
                     break;
-                case A44:
-                {
+                case A44: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -421,8 +467,7 @@ void LL::analyze() {
                     lex = saveLex;
                 }
                     break;
-                case A55:
-                {
+                case A55: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -440,19 +485,18 @@ void LL::analyze() {
                     break;
                 case A6:
                     magazine[pos++] = A7;
-                {
-                    string saveLex = lex;
-                    int savePos = scanner->getPos();
-                    type = scanner->scan(lex);
-                    if (type == PLUS || type == MINUS) {
-                        magazine[pos++] = type;
+                    {
+                        string saveLex = lex;
+                        int savePos = scanner->getPos();
+                        type = scanner->scan(lex);
+                        if (type == PLUS || type == MINUS) {
+                            magazine[pos++] = type;
+                        }
+                        scanner->setPos(savePos);
+                        lex = saveLex;
                     }
-                    scanner->setPos(savePos);
-                    lex = saveLex;
-                }
                     break;
-                case A7:
-                {
+                case A7: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -464,7 +508,7 @@ void LL::analyze() {
                         case OCT:
                         case HEX:
                         case CONST:
-                            magazine[pos++] = PUSH;
+                            magazine[pos++] = PUSH_CONST;
                             magazine[pos++] = type;
                             break;
                         case ROUND_LEFT:
@@ -489,8 +533,7 @@ void LL::analyze() {
                     magazine[pos++] = VARDOP;
                     magazine[pos++] = VAR;
                     break;
-                case VARDOP:
-                {
+                case VARDOP: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -507,7 +550,6 @@ void LL::analyze() {
                     magazine[pos++] = P;
                     magazine[pos++] = SQ;
                     magazine[pos++] = ADD;
-                    magazine[pos++] = FIND;
                     magazine[pos++] = IDENT;
                     break;
                 case P: {
@@ -529,8 +571,7 @@ void LL::analyze() {
                     magazine[pos++] = FIND;
                     magazine[pos++] = IDENT;
                     break;
-                case ARCL:
-                {
+                case ARCL: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -543,24 +584,22 @@ void LL::analyze() {
                     lex = saveLex;
                 }
                     break;
-                case AR:
-                {
+                case AR: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == SQUARE_LEFT) {
-                        magazine[pos++] = CHECK_ARRAY;
                         magazine[pos++] = SQUARE_RIGHT;
                         magazine[pos++] = MATCH_CONST;
                         magazine[pos++] = EXP;
+                        magazine[pos++] = CHECK_ARRAY;
                         magazine[pos++] = SQUARE_LEFT;
                     }
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
                     break;
-                case FIELD:
-                {
+                case FIELD: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
@@ -574,8 +613,7 @@ void LL::analyze() {
                     lex = saveLex;
                 }
                     break;
-                case SQ:
-                {
+                case SQ: {
                     string saveLex = lex;
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);

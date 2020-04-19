@@ -316,6 +316,24 @@ Tree *Tree::makeVarArray(string size) {
     return this;
 }
 
+Tree *Tree::makeVarArray() {
+    if (!flagInterpret) return nullptr;
+    this->node->size = 0;
+    this->node->type = ObjArray;
+    if (this->node->typeName == ObjInt) {
+        this->node->data.intArray = new int[this->node->size];
+    } else if (this->node->typeName == ObjChar) {
+        this->node->data.charArray = new char[this->node->size];
+    }
+    else {
+        this->node->data.structArray = new Tree*[this->node->size];
+        for (int i = 0; i < this->node->size; i++) {
+            this->node->data.structArray[i] = this->node->dataType->copy();
+        }
+    }
+    return this;
+}
+
 Tree *Tree::makeTypeFromArray(Tree *pTree) {
     if (!flagInterpret) return nullptr;
     Node *n = new Node();
@@ -343,6 +361,30 @@ Tree *Tree::makeIntVar(string lex) {
     n->data.intVariable = std::stoi(lex);
 
     return new Tree(n);
+}
+
+Tree *Tree::makeIntVar() {
+    if (!flagInterpret) return nullptr;
+    Node *n = new Node();
+    n->type = ObjVar;
+    n->typeName = ObjInt;
+    n->stringTypeName = "int";
+    n->data.intVariable = 0;
+
+    return new Tree(n);
+}
+
+
+Tree *Tree::check6Compatible(Tree *t) {
+    if (!flagInterpret) return nullptr;
+    if (t->node->type == ObjStructDefinition ||
+        t->node->type == ObjMain ||
+        t->node->type == ObjArray ||
+        t->node->type == ObjStruct) {
+        scanner->printSemError("Невозможный тип для операций + или -", 0);
+        exit(0);
+    }
+    return t;
 }
 
 Tree *Tree::check5Compatible(Tree *t, Tree *g) {
@@ -502,4 +544,11 @@ void Tree::nullRight() {
 
 void Tree::setRight(Tree *right) {
     Tree::right = right;
+}
+
+void Tree::goUp() {
+    while (cur->parent->right != this) {
+        cur = cur->parent;
+    }
+    cur = cur->parent;
 }

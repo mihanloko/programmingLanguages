@@ -8,6 +8,7 @@
 
 #include "Scanner.h"
 #include "defs.h"
+#include "Tree.h"
 #include <string>
 #include <map>
 
@@ -20,6 +21,9 @@ private:
     int pos = 0;
     map<int, string> words;
     string lastLex;
+    Tree* lastType;
+    Tree* magazineTypes[5000];
+    int typePos = 0;
 public:
     LL(Scanner *scanner, map<int, string> &words);
     void analyze();
