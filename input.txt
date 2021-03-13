@@ -1,0 +1,24 @@
+class a {
+    int a, b, c;
+};
+
+int main() {
+    a a;
+    int a, b, c;
+    if (a < b) ;
+    else {
+        int d = 6 >> 7 + hj;
+    }
+    char s = a.b.c.d[5].e[8].f;
+    char s = a.b.c.d[5].e[8].f[8];
+    int ar[100];
+    {
+        {
+            {
+                {
+                }
+            }
+        }
+    }
+
+}
