@@ -15,7 +15,5 @@ int main() {
         ((((((b * 8))))));
 
     ABC abc;
-    char bc = abc.d[100] << 39;
-    //int e = b[10];
-    char gh = abc;
+    abc.a = 90 * 8 / c;
 }
