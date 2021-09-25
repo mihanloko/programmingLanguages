@@ -3,7 +3,6 @@
 #include <map>
 #include <string>
 #include "Scanner.h"
-//#include "SyntaxDiagrams.h"
 #include "LL.h"
 
 using namespace std;
@@ -35,7 +34,7 @@ map<int, string> getMap() {
 }
 
 int main (int argc, char *argv[]) {
-    string text = getData(argv[1]);
+    string text = getData("input.txt");
 
     map<int, string> words = getMap();
 
@@ -51,13 +50,10 @@ int main (int argc, char *argv[]) {
     }
     //cout << words[code] << " " << lex << endl;
     scanner->setPos(0);
-    /*if (!errors || errors) {
-        SyntaxDiagrams *diagram = new SyntaxDiagrams(scanner);
-        bool result = diagram->program();
-        if (result) cout << "Ошибок нет";
-    }*/
     LL *ll = new LL(scanner, words);
     ll->analyze();
+    ll->outOperands();
+    ll->outTriads();
 
     return 0;
 }

@@ -25,7 +25,8 @@ enum Type {
 enum TypeName {
     ObjInt = 1,
     ObjChar,
-    ObjClass
+    ObjClass,
+    ObjUnknownType
 };
 
 union DataValue {
@@ -49,6 +50,14 @@ struct Node {
     string toString();
 
     Node();
+
+    Node(string lex) {
+        type = ObjUnknown;
+        this->lex = lex;
+        typeName = ObjUnknownType;
+        dataType = nullptr;
+        stringTypeName = "";
+    }
 
     Node* copy();
 

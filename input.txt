@@ -4,16 +4,10 @@ class ABC {
 };
 
 int main() {
+
     int a, b, c;
-    if (c < b) {
-        a = 5 + 7;
-    }
-    else
-        c = 6 * 8;
+    int ar2[100];
+    int ar[100];
+    c = ar[ar[ar[ar2[2 >> a]]] >> b + c * 5];
 
-    if (a * 5)
-        ((((((b * 8))))));
-
-    ABC abc;
-    abc.a = 90 * 8 / c;
 }

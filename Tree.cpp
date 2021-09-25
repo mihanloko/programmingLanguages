@@ -547,8 +547,8 @@ void Tree::setRight(Tree *right) {
 }
 
 void Tree::goUp() {
-    while (cur->parent->right != this) {
+    /*while (cur->parent->right != this) {
         cur = cur->parent;
     }
-    cur = cur->parent;
+    cur = cur->parent;*/
 }

@@ -30,24 +30,23 @@ void LL::analyze() {
     string lex;
     while (run) {
 
-        if (magazine[pos] < S) { ///terminal
+        if (magazine[pos] >= 0 && magazine[pos] < S) { ///terminal
             type = scanner->scan(lex);
             if (type == magazine[pos]) {
                 if (type == END) run = 0;
                 else {
                     //type = scanner->scan(lex);
-                    if (type == TYPE_INT || type == TYPE_CHAR || type == IDENT)
+                    if (type == TYPE_INT || type == TYPE_CHAR || type == IDENT) {
                         lastLex = lex;
+                    }
                     pos--;
                 }
             } else {
                 scanner->printError(words[magazine[pos]], lex);
                 cout << endl;
-//                for (int i = pos + 5; i > -1; i--)
-//                    cout << words[magazine[i]] << endl;
                 return;
             }
-        } else if (magazine[pos] >= SET_CLASS) { ///semantic function
+        } else if (magazine[pos] >= SET_CLASS && magazine[pos] <= PUSH_CONST) { ///semantic function
             switch (magazine[pos]) {
                 case BACK:
                     Tree::cur->goUp();
@@ -59,13 +58,6 @@ void LL::analyze() {
                     magazineTypes[typePos++] = Tree::cur->findClassDefinition(lastLex);
                     break;
                 case CHECK_TYPE:
-                /*{
-                    Tree* cur = Tree::cur;
-                    while (cur->parent != nullptr) {
-                        cout << cur->node->lex << endl;
-                        cur = cur->parent;
-                    }
-                }*/
                     Tree::cur->findClassDefinition(lastLex);
                     break;
                 case PUSH:
@@ -77,32 +69,46 @@ void LL::analyze() {
                 case MATCH_ASSIGN:
                     magazineTypes[typePos - 1] = Tree::cur->checkAssignCompatible(magazineTypes[typePos - 1],
                                                                                   magazineTypes[typePos - 2]);
+                    checkAssignCast(magazineTypes[typePos - 1], magazineTypes[typePos - 2]);
                     typePos--;
                     break;
                 case MATCH_1:
                     magazineTypes[typePos - 1] = Tree::cur->check1Compatible(magazineTypes[typePos - 1],
                                                                              magazineTypes[typePos - 2]);
+                    checkCast(magazineTypes[typePos - 2], magazineTypes[typePos - 1]);
                     typePos--;
                     break;
                 case MATCH_2:
                     magazineTypes[typePos - 1] = Tree::cur->check2Compatible(magazineTypes[typePos - 1],
                                                                              magazineTypes[typePos - 2]);
+                    checkCast(magazineTypes[typePos - 2], magazineTypes[typePos - 1]);
                     typePos--;
                     break;
                 case MATCH_3:
                     magazineTypes[typePos - 1] = Tree::cur->check3Compatible(magazineTypes[typePos - 1],
                                                                              magazineTypes[typePos - 2]);
+                    checkCast(magazineTypes[typePos - 2], magazineTypes[typePos - 1]);
                     typePos--;
                     break;
                 case MATCH_4:
                     magazineTypes[typePos - 1] = Tree::cur->check4Compatible(magazineTypes[typePos - 1],
                                                                              magazineTypes[typePos - 2]);
+                    checkCast(magazineTypes[typePos - 2], magazineTypes[typePos - 1]);
                     typePos--;
                     break;
                 case MATCH_5:
                     magazineTypes[typePos - 1] = Tree::cur->check5Compatible(magazineTypes[typePos - 1],
                                                                              magazineTypes[typePos - 2]);
+                    checkCast(magazineTypes[typePos - 2], magazineTypes[typePos - 1]);
                     typePos--;
+                    break;
+                case MATCH_6:
+                    magazineTypes[typePos - 1] = Tree::cur->check6Compatible(magazineTypes[typePos - 1]);
+                    break;
+                case MATCH_CONST:
+                    if (magazineTypes[typePos - 1]->getNode()->typeName != ObjChar &&
+                        magazineTypes[typePos - 1]->getNode()->typeName != ObjInt)
+                        scanner->printSemError("Значение выражения не явлется целым типом", lastLex.size());
                     break;
                 case FIND:
                     lastType = Tree::cur->FindUp(lastLex);
@@ -117,8 +123,7 @@ void LL::analyze() {
                     typePos--;
                     break;
                 case CHECK_ARRAY: {
-                    //Tree *checkedArr = Tree::cur->FindUp(lastLex);
-                    if (!(lastType->getNode()->type == ObjArray))
+                    if (lastType->getNode()->type != ObjArray)
                         scanner->printSemError("Объект " + lastType->getNode()->lex + " не является массивом", lastLex.size());
                 }
                     break;
@@ -127,14 +132,6 @@ void LL::analyze() {
                     break;
                 case NEW_BLOCK:
                     Tree::cur->openBlock("", ObjFictive);
-                    break;
-                case MATCH_6:
-                    magazineTypes[typePos - 1] = Tree::cur->check6Compatible(magazineTypes[typePos - 1]);
-                    break;
-                case MATCH_CONST:
-                    if (magazineTypes[typePos - 1]->getNode()->typeName != ObjChar &&
-                            magazineTypes[typePos - 1]->getNode()->typeName != ObjInt)
-                        scanner->printSemError("Значение выражения не явлется целым типом", lastLex.size());
                     break;
                 case FIND_FIELD:
                     lastType = lastType->findFiled(lastType, lastLex);
@@ -146,6 +143,129 @@ void LL::analyze() {
                     }
                     Tree::cur->openBlock(lastLex, ObjStructDefinition);
                     break;
+            }
+            pos--;
+        } else if (magazine[pos] < 0) { /// gen
+            switch (magazine[pos]) {
+                case GEN_PUSH:
+                    operands.push_back(new Operand(new Node(lex)));
+                    break;
+                case GEN_CMP: {
+                    generateArithmeticTriad(TRI_CMP);
+                    break;
+                }
+                case GEN_MUL: {
+                    generateArithmeticTriad(TRI_MUL);
+                    break;
+                }
+
+                case GEN_DIV: {
+                    generateArithmeticTriad(TRI_DIV);
+                    break;
+                }
+
+                case GEN_MOD: {
+                    generateArithmeticTriad(TRI_MOD);
+                    break;
+                }
+
+                case GEN_PLUS: {
+                    generateArithmeticTriad(TRI_PLUS);
+                    break;
+                }
+
+                case GEN_MINUS: {
+                    generateArithmeticTriad(TRI_MINUS);
+                    break;
+                }
+
+                case GEN_ASSIGNMENT: {
+                    generateArithmeticTriad(TRI_ASSIGNMENT);
+                    break;
+                }
+                case GEN_EQ: {
+                    generateArithmeticTriad(TRI_EQ);
+                    break;
+                }
+                case GEN_NEQ : {
+                    generateArithmeticTriad(TRI_NEQ);
+                    break;
+                }
+                case GEN_GT: {
+                    generateArithmeticTriad(TRI_GT);
+                    break;
+                }
+                case GEN_GE : {
+                    generateArithmeticTriad(TRI_GE);
+                    break;
+                }
+                case GEN_LT: {
+                    generateArithmeticTriad(TRI_LT);
+                    break;
+                }
+                case GEN_LE: {
+                    generateArithmeticTriad(TRI_LE);
+                    break;
+                }
+                case GEN_LEFT_SHIFT: {
+                    generateArithmeticTriad(TRI_LEFT_SHIFT);
+                    break;
+                }
+                case GEN_RIGHT_SHIFT: {
+                    generateArithmeticTriad(TRI_RIGHT_SHIFT);
+                    break;
+                }
+                case GEN_IDX: {
+                    generateArithmeticTriad(TRI_IDX);
+                    break;
+                }
+                case GEN_DOT: {
+                    generateArithmeticTriad(TRI_DOT);
+                    break;
+                }
+                case GEN_IF: {
+                    Triad *ifTriad = new Triad(TRI_IF, nullptr, nullptr);
+                    triads.push_back(ifTriad);
+                    ifData.emplace_back();
+                    ifData.back().ifOperand = ifTriad;
+                    ifData.back().falseAddress = -1;
+                    ifData.back().trueAddress = -1;
+                    ifData.back().nopOperand = -1;
+                    break;
+                }
+                case GEN_FORM_IF: {
+                    ifData.back().ifOperand->setOperand1(new Operand(ifData.back().trueAddress));
+                    ifData.back().ifOperand->setOperand2(new Operand(ifData.back().falseAddress == -1 ? ifData.back().nopOperand : ifData.back().falseAddress));
+                    ifData.back().jmpTriad->getOperand1()->value.address = ifData.back().nopOperand;
+                    ifData.pop_back();
+                    break;
+                }
+                case GEN_GOTO: {
+                    triads.push_back(new Triad(TRI_JMP, new Operand(ifData.back().nopOperand), nullptr));
+                    ifData.back().jmpTriad = triads.back();
+                    break;
+                }
+                case GEN_SET_ADDR_NOP: {
+                    triads.push_back(new Triad(TRI_NOP));
+                    ifData.back().nopOperand = triads.size() - 1;
+                    break;
+                }
+                case GEN_SET_TRUE_ADDR: {
+                    ifData.back().trueAddress = triads.size();
+                    break;
+                }
+                case GEN_SET_FALSE_ADDR: {
+                    ifData.back().falseAddress = triads.size();
+                    break;
+                }
+                case GEN_PROC: {
+                    triads.push_back(new Triad(TRI_PROC, new Operand("main"), nullptr));
+                    break;
+                }
+                case GEN_ENDP: {
+                    triads.push_back(new Triad(TRI_ENDP, new Operand("main"), nullptr));
+                    break;
+                }
             }
             pos--;
         } else { ///not terminal
@@ -213,15 +333,16 @@ void LL::analyze() {
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
-                    //todo maybe else
                     break;
                 case MAIN:
+                    magazine[pos++] = GEN_ENDP;
                     magazine[pos++] = CURLY_RIGHT;
                     magazine[pos++] = OPVAR;
                     magazine[pos++] = CURLY_LEFT;
                     magazine[pos++] = START_MAIN;
                     magazine[pos++] = ROUND_RIGHT;
                     magazine[pos++] = ROUND_LEFT;
+                    magazine[pos++] = GEN_PROC;
                     magazine[pos++] = WORD_MAIN;
                     magazine[pos++] = TYPE_INT;
                     break;
@@ -330,8 +451,11 @@ void LL::analyze() {
                     break;
                 case IF:
                     magazine[pos++] = ELSE;
+                    magazine[pos++] = GEN_GOTO;
                     magazine[pos++] = OP;
                     magazine[pos++] = CHECK_CONDITION;
+                    magazine[pos++] = GEN_SET_TRUE_ADDR;
+                    magazine[pos++] = GEN_IF;
                     magazine[pos++] = ROUND_RIGHT;
                     magazine[pos++] = EXP;
                     magazine[pos++] = ROUND_LEFT;
@@ -342,17 +466,25 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == WORD_ELSE) {
+                        magazine[pos++] = GEN_FORM_IF;
+                        magazine[pos++] = GEN_SET_ADDR_NOP;
                         magazine[pos++] = OP;
+                        magazine[pos++] = GEN_SET_FALSE_ADDR;
                         magazine[pos++] = WORD_ELSE;
+                    } else {
+                        magazine[pos++] = GEN_FORM_IF;
+                        magazine[pos++] = GEN_SET_ADDR_NOP;
                     }
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
                     break;
                 case ASSIGN:
+                    magazine[pos++] = GEN_ASSIGNMENT;
                     magazine[pos++] = MATCH_ASSIGN;
                     magazine[pos++] = A1;
                     magazine[pos++] = ASSIGN;
+                    magazine[pos++] = GEN_PUSH;
                     magazine[pos++] = OBJ;
                     break;
                 case A0: {
@@ -367,6 +499,7 @@ void LL::analyze() {
                         }
 
                         if (type == ASSIGN) {
+                            magazine[pos++] = GEN_ASSIGNMENT;
                             magazine[pos++] = MATCH_ASSIGN;
                             magazine[pos++] = A1;
                             magazine[pos++] = ASSIGN;
@@ -408,13 +541,11 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == EQUALS || type == NOT_EQUAL) {
+                        magazine[pos++] = genByType(type);
                         magazine[pos++] = MATCH_1;
                         magazine[pos++] = A1;
                         magazine[pos++] = type;
                     }
-                    /*else {
-                        magazine[pos++] = A2;
-                    }*/
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
@@ -424,13 +555,11 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == GREATER || type == GREATER_EQUAL || type == LESS || type == LESS_EQUAL) {
+                        magazine[pos++] = genByType(type);
                         magazine[pos++] = MATCH_2;
                         magazine[pos++] = A2;
                         magazine[pos++] = type;
                     }
-                    /*else {
-                        magazine[pos++] = A3;
-                    }*/
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
@@ -440,13 +569,11 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == LEFT_SHIFT || type == RIGHT_SHIFT) {
+                        magazine[pos++] = genByType(type);
                         magazine[pos++] = MATCH_3;
                         magazine[pos++] = A3;
                         magazine[pos++] = type;
                     }
-                    /*else {
-                        magazine[pos++] = A4;
-                    }*/
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
@@ -456,13 +583,11 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == PLUS || type == MINUS) {
+                        magazine[pos++] = genByType(type);
                         magazine[pos++] = MATCH_4;
                         magazine[pos++] = A4;
                         magazine[pos++] = type;
                     }
-                    /*else {
-                        magazine[pos++] = A5;
-                    }*/
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
@@ -472,13 +597,11 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == STAR || type == SLASH || type == PERCENT) {
+                        magazine[pos++] = genByType(type);
                         magazine[pos++] = MATCH_5;
                         magazine[pos++] = A5;
                         magazine[pos++] = type;
                     }
-                    /*else {
-                        magazine[pos++] = A6;
-                    }*/
                     scanner->setPos(savePos);
                     lex = saveLex;
                 }
@@ -508,6 +631,7 @@ void LL::analyze() {
                         case OCT:
                         case HEX:
                         case CONST:
+                            magazine[pos++] = GEN_PUSH;
                             magazine[pos++] = PUSH_CONST;
                             magazine[pos++] = type;
                             break;
@@ -569,6 +693,7 @@ void LL::analyze() {
                     magazine[pos++] = ARCL;
                     magazine[pos++] = PUSH;
                     magazine[pos++] = FIND;
+                    magazine[pos++] = GEN_PUSH;
                     magazine[pos++] = IDENT;
                     break;
                 case ARCL: {
@@ -591,9 +716,11 @@ void LL::analyze() {
                     if (type == SQUARE_LEFT) {
                         magazine[pos++] = SQUARE_RIGHT;
                         magazine[pos++] = MATCH_CONST;
+                        magazine[pos++] = GEN_IDX;
                         magazine[pos++] = EXP;
                         magazine[pos++] = CHECK_ARRAY;
                         magazine[pos++] = SQUARE_LEFT;
+                        magazine[pos++] = GEN_PUSH;
                     }
                     scanner->setPos(savePos);
                     lex = saveLex;
@@ -604,10 +731,13 @@ void LL::analyze() {
                     int savePos = scanner->getPos();
                     type = scanner->scan(lex);
                     if (type == DOT) {
+                        magazine[pos++] = GEN_DOT;
                         magazine[pos++] = PUSH;
                         magazine[pos++] = FIND_FIELD;
+                        magazine[pos++] = GEN_PUSH;
                         magazine[pos++] = IDENT;
                         magazine[pos++] = DOT;
+                        magazine[pos++] = GEN_PUSH;
                     }
                     scanner->setPos(savePos);
                     lex = saveLex;
@@ -633,4 +763,236 @@ void LL::analyze() {
 
     }
     cout << "Ошибок нет";
+}
+
+void LL::outOperands() {
+    cout << "\nОперанды: ";
+    for (int i = 0; i < operands.size(); i++) {
+        outOneOperand(operands[i]);
+        cout << " ";
+    }
+    cout << "\n";
+}
+
+void LL::outOneOperand(Operand *operand) {
+    if (operand == nullptr || operand->type == EMPTY)
+        cout << "-";
+    else if (operand->type == ADDRESS)
+        cout << "(" << operand->value.address << ")";
+    else if (operand->type == NODE)
+        cout << operand->value.node->lex;
+}
+
+void LL::generateArithmeticTriad(int operation) {
+    Operand *operand2 = getOperand();
+    Operand *operand1 = getOperand();
+    triads.push_back(new Triad(operation, operand1, operand2));
+    operands.push_back(new Operand(getLastTriadAddr()));
+}
+
+Operand *LL::getOperand() {
+    return getTopValue(operands, "operands");
+}
+
+template<typename TYPE>
+TYPE LL::getTopValue(vector<TYPE> &st, const string &name) {
+    if (st.empty())
+        invalid_argument("Empty collection " + name);
+    auto res = st.back();
+    st.pop_back();
+    return res;
+}
+
+int LL::getLastTriadAddr() const {
+    return triads.size() - 1;
+}
+
+int LL::genByType(int type) {
+    switch (type) {
+        case STAR:
+            return GEN_MUL;
+        case SLASH:
+            return GEN_DIV;
+        case PERCENT:
+            return GEN_MOD;
+        case GREATER:
+            return GEN_GT;
+        case GREATER_EQUAL:
+            return GEN_GE;
+        case LESS:
+            return GEN_LT;
+        case LESS_EQUAL:
+            return GEN_LE;
+        case EQUALS:
+            return GEN_EQ;
+        case NOT_EQUAL:
+            return GEN_NEQ;
+        case LEFT_SHIFT:
+            return GEN_LEFT_SHIFT;
+        case RIGHT_SHIFT:
+            return GEN_RIGHT_SHIFT;
+        case PLUS:
+            return GEN_PLUS;
+        case MINUS:
+            return GEN_MINUS;
+        default:
+            return -1;
+    }
+}
+
+void LL::outTriads() {
+    cout << "Триады: " << endl;
+    for (int i = 0; i < triads.size(); i++) {
+        cout << i << ") ";
+        outOneTriad(triads[i]);
+        cout << endl;
+    }
+}
+
+void LL::outOneTriad(Triad *triad) {
+    cout << codeOperationToString(triad->getOperation()) << " ";
+    outOneOperand(triad->getOperand1());
+    cout << " ";
+    outOneOperand(triad->getOperand2());
+}
+
+
+string LL::codeOperationToString(int code) {
+    string str;
+
+    switch (code) {
+        case TRI_MUL:
+            str = "*";
+            break;
+        case TRI_DIV:
+            str = "/";
+            break;
+        case TRI_MOD:
+            str = "%";
+            break;
+        case TRI_PLUS:
+            str = "+";
+            break;
+        case TRI_MINUS:
+            str = "-";
+            break;
+        case TRI_ASSIGNMENT:
+            str = "=";
+            break;
+        case TRI_GT:
+            str = ">";
+            break;
+        case TRI_LT:
+            str = "<";
+            break;
+        case TRI_GE:
+            str = ">=";
+            break;
+        case TRI_LE:
+            str = "<=";
+            break;
+        case TRI_EQ:
+            str = "==";
+            break;
+        case TRI_NEQ:
+            str = "!=";
+            break;
+        case TRI_CMP:
+            str = "cmp";
+            break;
+        case TRI_CALL:
+            str = "call";
+            break;
+        case TRI_PROC:
+            str = "proc";
+            break;
+        case TRI_ENDP:
+            str = "endp";
+            break;
+        case TRI_JMP:
+            str = "jmp";
+            break;
+        case TRI_RET:
+            str = "ret";
+            break;
+        case TRI_MOV:
+            str = "mov";
+            break;
+        case TRI_NOP:
+            str = "nop";
+            break;
+        case TRI_IF:
+            str = "if";
+            break;
+        case TRI_LEFT_SHIFT:
+            str = "<<";
+            break;
+        case TRI_RIGHT_SHIFT:
+            str = ">>";
+            break;
+        case TRI_DOT:
+            str = ".";
+            break;
+        case TRI_IDX:
+            str = "idx";
+            break;
+        case TRI_UNIQUE_LABEL:
+            str = getUniqueLabel(4) + ':';
+            break;
+        case TRI_INT_CHAR:
+            str = "i->ch";
+            break;
+        case TRI_CHAR_INT:
+            str = "ch->i";
+            break;
+        default:
+            throw invalid_argument("invalid operation code: " + to_string(code));
+    }
+
+    return str;
+}
+
+string LL::getUniqueLabel(int len) {
+    {
+        string tmp_s;
+        static const char alphanum[] =
+                "0123456789"
+                "abcdefghijklmnopqrstuvwxyz";
+
+        tmp_s.reserve(len);
+
+        for (int i = 0; i < len; ++i)
+            tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+
+
+        return tmp_s;
+    }
+}
+
+void LL::checkAssignCast(Tree *first, Tree *second) {
+    if (first->getNode()->typeName != second->getNode()->typeName) {
+        if (second->getNode()->typeName == ObjChar && first->getNode()->typeName == ObjInt) {
+            triads.push_back(new Triad(TRI_INT_CHAR, operands.back(), nullptr));
+            operands.pop_back();
+            operands.push_back(new Operand(getLastTriadAddr()));
+        } else if (second->getNode()->typeName == ObjInt && first->getNode()->typeName == ObjChar) {
+            triads.push_back(new Triad(TRI_CHAR_INT, operands.back(), nullptr));
+            operands.pop_back();
+            operands.push_back(new Operand(getLastTriadAddr()));
+        }
+    }
+}
+
+void LL::checkCast(Tree *first, Tree *second) {
+    if (first->getNode()->typeName != second->getNode()->typeName) {
+        if (first->getNode()->typeName == ObjChar) {
+            triads.push_back(new Triad(TRI_CHAR_INT, operands.back(), nullptr));
+            operands.pop_back();
+            operands.push_back(new Operand(getLastTriadAddr()));
+        } else if (second->getNode()->typeName == ObjChar) {
+            triads.push_back(new Triad(TRI_CHAR_INT, operands.back(), nullptr));
+            operands.pop_back();
+            operands.push_back(new Operand(getLastTriadAddr()));
+        }
+    }
 }

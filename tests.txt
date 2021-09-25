@@ -1,3 +1,4 @@
+//------
 class ABC {
     int a, b, c;
     char d[100];
@@ -21,7 +22,7 @@ int main() {
 }
 
 
-
+//------
 class ABC {
     int a, b, c;
     char d[100];
@@ -44,7 +45,7 @@ int main() {
 }
 
 
-
+//------
 class ABC {
     int a, b, c;
     char d[100];
@@ -66,7 +67,7 @@ int main() {
 }
 
 
-
+//------
 class ABC {
     int a, b, c;
     char d[100];
@@ -79,7 +80,7 @@ int main() {
 }
 
 
-
+//------
 class ABC {
     int a, b, c;
     char d[100];
@@ -89,4 +90,130 @@ int main() {
     int a, b;
     ABC abc;
     char d = abc.d[5];
+}
+
+//------
+class ABC {
+    int a, b, c;
+    char d[100];
+};
+
+int main() {
+    int ar[10];
+    int arv = ar[5];
+    int a, b, c;
+    int k;
+    k = 1 + 2 * 3;
+    k = 1 * 2 + 3;
+    if (c < b) {
+        a = 5 + 7;
+    }
+    else
+        c = 6 * 8;
+
+    if (a * 5)
+        ((((((b * 8))))));
+
+    ABC abc;
+    abc.a = 90 * 8 / c;
+}
+
+//------
+class ABC {
+    int a, b, c;
+    char d[100];
+};
+
+int main() {
+    int ar[10];
+    int arv = ar[5];
+    int a, b, c;
+    int k;
+    k = 1 + 2 * 3;
+    k = 1 * 2 + 3;
+    if (c < b) {
+        a = 5 + 7;
+    }
+    else
+        c = 6 * 8;
+
+    if (a * 5)
+        ((((((b * 8))))));
+
+    ABC abc;
+    abc.a = 90 * 8 / c;
+}
+
+//---
+class ABC {
+    int a, b, c;
+    char d[100];
+};
+
+int main() {
+
+    int a, b, c;
+    if (c < b) {
+        a = 5 + 7;
+        if (a > b) {
+            a = 6;
+            if (b < 10) {
+                b = 22;
+            } else {
+                c = 15;
+            }
+        } else {
+            b = a;
+        }
+    }
+    else {
+        c = 6 * 8;
+    }
+    if (a * 5)
+        ((((((b * 8))))));
+
+    ABC abc;
+    abc.a = 90 * 8 / c;
+}
+
+//----
+class ABC {
+    int a, b, c;
+    char d[100];
+};
+
+int main() {
+
+    int a, b, c;
+    if (c < b) {
+        a = 5 >> 7;
+        if (a > b) {
+            a = 6;
+            if (b < 10) {
+                b = 22;
+            } else {
+                c = 15;
+            }
+        } else {
+            b = a;
+        }
+    }
+    else {
+        c = 6 << 8;
+    }
+    if (a * 5)
+        ((((((b >> 8))))));
+
+    ABC abc;
+    abc.a = 90 << 8 >> c;
+}
+
+//-----
+int main() {
+
+    int a, b, c;
+    int ar2[100];
+    int ar[100];
+    c = ar[ar[ar[ar2[2 >> a]]] >> b + c * 5];
+
 }

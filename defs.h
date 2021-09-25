@@ -106,4 +106,75 @@
 #define FIND_FIELD 421
 #define PUSH_CONST 422
 
+
+// ----------------------------------- Подпрограммы генерации  -----------------------------------
+//==
+#define GEN_EQ -1400
+//!=
+#define GEN_NEQ -1500
+//>
+#define GEN_GT -1600
+//>=
+#define GEN_GE -1700
+//<
+#define GEN_LT -1800
+//<=
+#define GEN_LE -1900
+#define GEN_MUL -400
+#define GEN_DIV -410
+#define GEN_MOD -411
+#define GEN_PLUS -412
+#define GEN_MINUS -413
+#define GEN_ASSIGNMENT -414
+#define GEN_CMP -415
+#define GEN_PROC -419
+#define GEN_ENDP -420
+#define GEN_LEFT_SHIFT -423
+#define GEN_RIGHT_SHIFT -424
+#define GEN_IDX -425
+#define GEN_DOT -426
+
+#define GEN_PUSH -300
+#define GEN_IF -314
+#define GEN_FORM_IF -317
+#define GEN_SET_ADDR_NOP -610
+#define GEN_GOTO -611
+#define GEN_SET_TRUE_ADDR -612
+#define GEN_SET_FALSE_ADDR -614
+// ----------------------------------- Операции для триад  -----------------------------------
+//==
+#define TRI_EQ -1400
+//!=
+#define TRI_NEQ -1500
+//>
+#define TRI_GT -1600
+//>=
+#define TRI_GE -1700
+//<
+#define TRI_LT -1800
+//<=
+#define TRI_LE -1900
+#define TRI_PLUS -2000
+#define TRI_MINUS -2100
+#define TRI_MUL -2200
+#define TRI_DIV -2300
+#define TRI_MOD -2400
+#define TRI_ASSIGNMENT -2500
+#define TRI_CMP -2600
+#define TRI_CALL -2800
+#define TRI_PROC -3000
+#define TRI_ENDP -3100
+#define TRI_JMP -3200
+#define TRI_MOV -3300
+#define TRI_IF -3400
+#define TRI_RET -3500
+#define TRI_NOP -3600
+#define TRI_UNIQUE_LABEL -4120
+#define TRI_LEFT_SHIFT -4200
+#define TRI_RIGHT_SHIFT -4210
+#define TRI_IDX -4220
+#define TRI_DOT -4230
+#define TRI_CHAR_INT -4000
+#define TRI_INT_CHAR -4010
+
 #endif //SCANNER_DEFS_H

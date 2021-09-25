@@ -9,10 +9,20 @@
 #include "Scanner.h"
 #include "defs.h"
 #include "Tree.h"
+#include "Triad.h"
 #include <string>
 #include <map>
+#include <vector>
 
 using namespace std;
+
+struct IfData {
+    Triad *ifOperand;
+    Triad *jmpTriad;
+    int trueAddress;
+    int falseAddress;
+    int nopOperand;
+};
 
 class LL {
 private:
@@ -24,9 +34,37 @@ private:
     Tree* lastType;
     Tree* magazineTypes[5000];
     int typePos = 0;
+
+    vector<IfData> ifData;
+    vector<Triad *> triads;  //список сгенерированных триад
+    vector<Operand *> operands;  //стек результатов
+
+    template<typename TYPE> TYPE getTopValue(vector<TYPE> &st, const string &name);
 public:
     LL(Scanner *scanner, map<int, string> &words);
     void analyze();
+
+    void outOneOperand(Operand *operand);
+
+    void outOneTriad(Triad *triad);
+
+    void outTriads();
+
+    void outOperands();
+
+    string codeOperationToString(int code);
+
+    void generateArithmeticTriad(int operation);
+
+    Operand *getOperand();
+
+    int getLastTriadAddr() const;
+
+    static string getUniqueLabel(int len);
+    int genByType(int type);
+
+    void checkAssignCast(Tree* first, Tree* second);
+    void checkCast(Tree* first, Tree* second);
 };
 
 
