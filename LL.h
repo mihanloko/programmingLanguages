@@ -65,6 +65,22 @@ public:
 
     void checkAssignCast(Tree* first, Tree* second);
     void checkCast(Tree* first, Tree* second);
+
+    void optimize();
+
+    Operand * tryOptimizeConst(Triad *triad);
+
+    int tryOptimizeDouble(Triad *triad, int i);
+
+    bool is_number(const std::string& s){
+        std::string::const_iterator it = s.begin();
+        while (it != s.end() && std::isdigit(*it)) ++it;
+        return !s.empty() && it == s.end();
+    }
+
+    bool checkNothingChanged(int i, int j, Triad *&pTriad);
+
+    void findAllOperands(Operand *pTriad, vector<Operand *>& vector1);
 };
 
 

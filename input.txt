@@ -1,13 +1,9 @@
-class ABC {
-    int a, b, c;
-    char d[100];
-};
-
 int main() {
-
-    int a, b, c;
-    int ar2[100];
-    int ar[100];
-    c = ar[ar[ar[ar2[2 >> a]]] >> b + c * 5];
-
+    int a, b, c, d;
+    a = 4 * 3 + 35 / 7;
+    a = d * c * 5 * 6;
+    a = c * d * 5 * 6;
+    b = d * c * 5 * 6;
+    d = 8;
+    c = d * c * 5 * 6;
 }

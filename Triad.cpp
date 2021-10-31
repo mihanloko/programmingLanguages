@@ -45,4 +45,12 @@ void Triad::setOperand2(Operand *operand2) {
     Triad::operand2 = operand2;
 }
 
-
+bool Operand::equals(Operand *other) {
+    if (other == nullptr || this->type != other->type)
+        return false;
+    if (this->type == ADDRESS && this->value.address == other->value.address)
+        return true;
+    if (this->type == NODE && this->value.node->lex == other->value.node->lex)
+        return true;
+    return false;
+}

@@ -25,6 +25,7 @@ public:
     Operand(int triadNum);  //операнд - ссылка на триаду
     Operand(Node *operand); //непосредственный операнд
     Operand(string operand); //непосредственный операнд
+    bool equals(Operand *other);
 };
 
 class Triad {

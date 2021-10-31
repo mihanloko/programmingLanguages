@@ -52,7 +52,10 @@ int main (int argc, char *argv[]) {
     scanner->setPos(0);
     LL *ll = new LL(scanner, words);
     ll->analyze();
-    ll->outOperands();
+//    ll->outOperands();
+    ll->outTriads();
+    ll->optimize();
+    cout << "\nПосле оптимизации\n\n";
     ll->outTriads();
 
     return 0;

@@ -841,12 +841,18 @@ int LL::genByType(int type) {
 }
 
 void LL::outTriads() {
+    int skipped = 0;
     cout << "Триады: " << endl;
     for (int i = 0; i < triads.size(); i++) {
+        if (triads[i] == nullptr) {
+            skipped++;
+            continue;
+        }
         cout << i << ") ";
         outOneTriad(triads[i]);
         cout << endl;
     }
+    cout << "skipped " << skipped << endl;
 }
 
 void LL::outOneTriad(Triad *triad) {
@@ -994,5 +1000,133 @@ void LL::checkCast(Tree *first, Tree *second) {
             operands.pop_back();
             operands.push_back(new Operand(getLastTriadAddr()));
         }
+    }
+}
+
+void LL::optimize() {
+    for (int i = 0; i < triads.size(); i++) {
+        if (triads[i] == nullptr) {
+            continue;
+        }
+        Operand* op = tryOptimizeConst(triads[i]);
+        if (op != nullptr) {
+            triads[i] = nullptr;
+            for (int j = i + 1; j < triads.size(); j++) {
+                Operand* o1 = triads[j]->getOperand1();
+                Operand* o2 = triads[j]->getOperand2();
+                if (o1 != nullptr && o1->type == ADDRESS && o1->value.address == i) {
+                    triads[j]->setOperand1(op);
+                }
+                if (o2 != nullptr && o2->type == ADDRESS && o2->value.address == i) {
+                    triads[j]->setOperand2(op);
+                }
+            }
+            i = 0;
+        }
+    }
+
+    for (int i = 0; i < triads.size(); i++) {
+        if (triads[i] == nullptr) {
+            continue;
+        }
+        int res = tryOptimizeDouble(triads[i], i);
+        if (res > 0) {
+            triads[res] = nullptr;
+            for (int j = res + 1; j < triads.size(); j++) {
+                if (triads[j] == nullptr) {
+                    continue;
+                }
+                Operand* o1 = triads[j]->getOperand1();
+                Operand* o2 = triads[j]->getOperand2();
+                if (o1 != nullptr && o1->type == ADDRESS && o1->value.address == res) {
+                    triads[j]->setOperand1(new Operand(i));
+                }
+                if (o2 != nullptr && o2->type == ADDRESS && o2->value.address == res) {
+                    triads[j]->setOperand2(new Operand(i));
+                }
+            }
+            i = 0;
+        }
+    }
+}
+
+Operand * LL::tryOptimizeConst(Triad *triad) {
+    Operand *o1 = triad->getOperand1();
+    Operand *o2 = triad->getOperand2();
+    if (o1 != nullptr && o1->type == NODE && o2 != nullptr && o2->type == NODE) {
+        Node* n1 = o1->value.node;
+        Node* n2 = o2->value.node;
+        if (is_number(n1->lex) && is_number(n2->lex)) {
+            int v1 = stoi(n1->lex);
+            int v2 = stoi(n2->lex);
+            int res;
+            switch (triad->getOperation()) {
+                case TRI_PLUS:
+                    res = v1 + v2;
+                    break;
+                case TRI_MINUS:
+                    res = v1 - v2;
+                    break;
+                case TRI_MUL:
+                    res = v1 * v2;
+                    break;
+                case TRI_DIV:
+                    res = v1 / v2;
+                    break;
+                case TRI_MOD:
+                    res = v1 % v2;
+                    break;
+                case TRI_LEFT_SHIFT:
+                    res = v1 << v2;
+                    break;
+                case TRI_RIGHT_SHIFT:
+                    res = v1 >> v2;
+                    break;
+            }
+            return new Operand(to_string(res));
+        }
+    }
+    return nullptr;
+}
+
+int LL::tryOptimizeDouble(Triad *triad, int i) {
+    for (int j = i + 1; j < triads.size(); j++) {
+        if (triads[j] == nullptr || triads[j]->getOperation() == TRI_NOP) {
+            continue;
+        }
+        if (triads[j]->getOperand1() != nullptr && triads[j]->getOperand1()->equals(triad->getOperand1())
+            && triads[j]->getOperand2() != nullptr && triads[j]->getOperand2()->equals(triad->getOperand2())
+            && checkNothingChanged(i, j, triads[j])) {
+            return j;
+        }
+    }
+    return -1;
+}
+
+bool LL::checkNothingChanged(int i, int j, Triad *&pTriad) {
+    vector<Operand*> used;
+    findAllOperands(pTriad->getOperand1(), used);
+    findAllOperands(pTriad->getOperand2(), used);
+    for (int k = i + 1; k < j; k++) {
+        if (triads[k] == nullptr) {
+            continue;
+        }
+        if (triads[k]->getOperation() == TRI_ASSIGNMENT) {
+            for(Operand* o: used) {
+                if (o->value.node->lex == triads[k]->getOperand1()->value.node->lex) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+void LL::findAllOperands(Operand *op, vector<Operand *>& vector1) {
+    if (op->type == ADDRESS) {
+        findAllOperands(triads[op->value.address]->getOperand1(), vector1);
+        findAllOperands(triads[op->value.address]->getOperand2(), vector1);
+    } else if (op->type == NODE) {
+        vector1.push_back(op);
     }
 }
